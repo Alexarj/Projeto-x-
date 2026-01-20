@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel do Usuário – Projeto X</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #0f172a;
+      color: #e5e7eb;
+    }
+
+    header {
+      background-color: #020617;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    header h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    header button {
+      background: none;
+      border: none;
+      color: #f87171;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .container {
+      display: flex;
+      min-height: calc(100vh - 60px);
+    }
+
+    nav {
+      width: 220px;
+      background-color: #020617;
+      border-right: 1px solid #1e293b;
+      padding: 20px 0;
+    }
+
+    nav button {
+      width: 100%;
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      color: #e5e7eb;
+      text-align: left;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    nav button:hover {
+      background-color: #1e293b;
+    }
+
+    main {
+      flex: 1;
+      padding: 24px;
+    }
+
+    .card {
+      background-color: #020617;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+      max-width: 900px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #38bdf8;
+    }
+
+    ul {
+      padding-left: 18px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  // Verifica se usuário está logado
+  if (localStorage.getItem("logado") !== "true") {
+    window.location.href = "login.html";
+  }
+</script>
+
+<header>
+  <h1>Painel do Usuário</h1>
+  <button onclick="logout()">Sair</button>
+</header>
+
+<div class="container">
+
+  <nav>
+    <button onclick="mostrar('saldo')">💰 Saldo</button>
+    <button onclick="mostrar('planos')">📋 Planos</button>
+    <button onclick="mostrar('historico')">🕒 Histórico</button>
+    <button onclick="mostrar('config')">⚙️ Configurações</button>
+  </nav>
+
+  <main>
+
+    <!-- SALDO -->
+    <div id="saldo" class="card">
+      <h2>Saldo Atual</h2>
+      <p>R$ <span id="valorSaldo">50,00</span></p>
+    </div>
+
+    <!-- PLANOS -->
+    <div id="planos" class="card hidden">
+      <h2>Planos Ativos</h2>
+      <ul>
+        <li>Plano 1: Sinais Nível 1 – 10 dias</li>
+      </ul>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div id="historico" class="card hidden">
+      <h2>Histórico de Operações</h2>
+      <ul>
+        <li>01/01/2026 – Back Over 2.5 – +R$5,00</li>
+        <li>02/01/2026 – Lay Under 1.5 – -R$2,00</li>
+      </ul>
+    </div>
+
+    <!-- CONFIGURAÇÕES -->
+    <div id="config" class="card hidden">
+      <h2>Configurações</h2>
+      <p>Você pode alterar preferências e notificações aqui.</p>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  function mostrar(id) {
+    document.querySelectorAll(".card").forEach(el => el.classList.add("hidden"));
+    document.getElementById(id).classList.remove("hidden");
+  }
+
+  function logout() {
+    localStorage.removeItem("logado");
+    window.location.href = "login.html";
+  }
+</script>
+
+</body>
+</html>
