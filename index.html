@@ -2,119 +2,231 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Projeto X</title>
+  <title>Projeto X – Home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background-color: #0f172a;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #020617);
       color: #e5e7eb;
-      line-height: 1.6;
-    }
-
-    header {
-      background-color: #020617;
-      padding: 32px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+      padding: 20px;
       text-align: center;
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-
-    header p {
-      margin-top: 8px;
-      color: #9ca3af;
-    }
-
-    section {
-      max-width: 900px;
-      margin: auto;
-      padding: 24px 20px;
-    }
-
-    .box {
+    .container {
+      max-width: 600px;
       background-color: #020617;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.7);
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .logo {
+      font-size: 36px;
+      font-weight: bold;
+      color: #38bdf8;
+      margin-bottom: 16px;
+      text-shadow: 0 0 10px #38bdf8;
     }
 
     h2 {
       color: #38bdf8;
-      margin-top: 0;
     }
 
-    ul {
-      padding-left: 18px;
+    p {
+      color: #e5e7eb;
+      line-height: 1.6;
+      margin-bottom: 20px;
     }
 
-    footer {
-      background-color: #020617;
-      text-align: center;
-      padding: 16px;
+    .btn-principal {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      background-color: #38bdf8;
+      color: #020617;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-principal:hover {
+      background-color: #0ea5e9;
+      transform: scale(1.05);
+    }
+
+    .botoes-links {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .botao-link {
+      padding: 10px 20px;
+      background-color: #64748b;
+      color: #e5e7eb;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
       font-size: 14px;
-      color: #9ca3af;
+      transition: all 0.3s ease;
     }
 
-    footer a {
+    .botao-link:hover {
+      background-color: #475569;
+      transform: scale(1.05);
+    }
+
+    /* Modal de login */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.7);
+    }
+
+    .modal-content {
+      background-color: #020617;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      color: #e5e7eb;
+      text-align: center;
+    }
+
+    .close {
       color: #38bdf8;
-      text-decoration: none;
-      margin: 0 8px;
+      float: right;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #1e293b;
+      color: #e5e7eb;
+      font-size: 14px;
+    }
+
+    @media (max-width: 500px) {
+      .botoes-links { flex-direction: column; }
+      .botao-link { width: 100%; }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Projeto X</h1>
-    <p>Trading esportivo com leitura de mercado e gestão de risco</p>
-  </header>
+  <div class="container">
+    <div class="logo">Projeto X</div>
 
-  <section>
-    <div class="box">
-      <h2>O que é o Projeto X</h2>
-      <p>
-        O <strong>Projeto X</strong> é um projeto independente focado em
-        <strong>trading esportivo em bolsas de apostas (Exchange)</strong>,
-        com prioridade para futebol.
-      </p>
-      <p>
-        As operações são manuais e baseadas em leitura de mercado.
-        Não há promessa de lucro ou garantia de resultado.
-      </p>
+    <h2>Conheça a Ideia</h2>
+    <p>
+      O Projeto X é um sistema de trading esportivo focado em bolsas de apostas (Exchange),
+      com prioridade para futebol. A proposta é oferecer sinais de operações e gestão de risco.
+    </p>
+    <p>
+      Escolha seu plano e acompanhe o mercado com transparência e segurança.
+    </p>
+
+    <button class="btn-principal" onclick="abrirModal('loginModal')">Entrar / Login</button>
+
+    <div class="botoes-links">
+      <button class="botao-link" onclick="abrirModal('termos')">Termos de Uso</button>
+      <button class="botao-link" onclick="abrirModal('risco')">Política de Risco</button>
     </div>
+  </div>
 
-    <div class="box">
-      <h2>Trading Esportivo X</h2>
-      <ul>
-        <li>Atuação em mercados de Exchange (ex: Betfair)</li>
-        <li>Foco principal em futebol</li>
-        <li>1 a 3 sinais por dia (quando houver oportunidade)</li>
-        <li>Operações manuais</li>
-        <li>Sem uso de martingale (gale)</li>
-      </ul>
+  <!-- Modal Login -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="fecharModal('loginModal')">&times;</span>
+      <h2>Login</h2>
+      <input type="text" id="usuario" placeholder="Usuário">
+      <input type="password" id="senha" placeholder="Senha">
+      <button onclick="login()">Entrar</button>
     </div>
+  </div>
 
-    <div class="box">
-      <h2>Gestão de Risco</h2>
-      <ul>
-        <li>Risco controlado por operação</li>
-        <li>Dias sem operações fazem parte da estratégia</li>
-        <li>Possibilidade de perdas financeiras</li>
-        <li>Resultados passados não garantem resultados futuros</li>
-      </ul>
+  <!-- Modal Termos -->
+  <div id="termos" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="fecharModal('termos')">&times;</span>
+      <h2>Termos de Uso</h2>
+      <p>Aqui você coloca todo o conteúdo dos Termos de Uso...</p>
     </div>
-  </section>
+  </div>
 
-  <footer>
-    © 2026 – Projeto X |
-    <a href="termos.html">Termos de Uso</a> |
-    <a href="risco.html">Política de Risco</a>
-  </footer>
+  <!-- Modal Risco -->
+  <div id="risco" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="fecharModal('risco')">&times;</span>
+      <h2>Política de Risco</h2>
+      <p>Aqui você coloca toda a Política de Risco...</p>
+    </div>
+  </div>
+
+  <script>
+    function login() {
+      const usuario = document.getElementById("usuario").value;
+      const senha = document.getElementById("senha").value;
+
+      if(usuario === "usuario" && senha === "1234") {
+        localStorage.setItem("logado", "true");
+        window.location.href = "painel.html";
+      } else if(usuario === "admin" && senha === "admin123") {
+        localStorage.setItem("admin", "true");
+        window.location.href = "admin.html";
+      } else {
+        alert("Usuário ou senha incorreto");
+      }
+    }
+
+    function abrirModal(id) {
+      document.getElementById(id).style.display = "block";
+    }
+
+    function fecharModal(id) {
+      document.getElementById(id).style.display = "none";
+    }
+
+    // Fecha modal clicando fora
+    window.onclick = function(event) {
+      const modals = ['loginModal', 'termos', 'risco'];
+      modals.forEach(id => {
+        const modal = document.getElementById(id);
+        if(event.target === modal) modal.style.display = "none";
+      });
+    }
+  </script>
 
 </body>
 </html>
