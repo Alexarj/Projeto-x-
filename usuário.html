@@ -59,7 +59,8 @@
       color: #fff;
       font-size: 15px;
       cursor: pointer;
-      margin-top: 15px;
+      margin-top: 10px;
+      margin-right: 8px;
     }
 
     button:hover {
@@ -76,16 +77,23 @@
 
 <div class="container">
 
-  <!-- DADOS DO PLANO -->
+  <!-- SALDO -->
+  <div class="card">
+    <h2>Carteira</h2>
+    <p id="saldoLivre">Saldo livre: R$ 0,00</p>
+    <p id="saldoPlano">Saldo investido no Plano B: R$ 0,00</p>
+  </div>
+
+  <!-- PLANO -->
   <div class="card">
     <h2>Plano Ativo</h2>
     <div id="planoInfo"></div>
+    <button onclick="ativarPlanoB()">Ativar Plano B</button>
   </div>
 
   <!-- AÇÕES -->
   <div class="card">
     <h2>Ações</h2>
-    <button onclick="location.href='planos.html'">Ver / Alterar Planos</button>
     <button onclick="logout()">Sair</button>
   </div>
 
@@ -98,40 +106,66 @@ if (!session || session.tipo !== "usuario") {
   window.location.href = "login.html";
 }
 
-/* 📦 PLANO */
-const plano = JSON.parse(localStorage.getItem("planoAtivo"));
-const planoInfo = document.getElementById("planoInfo");
+/* 💰 CARTEIRA */
+let carteira = JSON.parse(localStorage.getItem("carteira")) || { saldoLivre: 50 };
+localStorage.setItem("carteira", JSON.stringify(carteira));
 
-if (!plano) {
-  planoInfo.innerHTML = `
-    <p class="status expirado">Nenhum plano ativo</p>
-    <button onclick="location.href='planos.html'">Ativar Plano</button>
-  `;
-} else {
-  const inicio = new Date(plano.inicio);
-  const agora = new Date();
-  const duracaoMs = plano.duracaoDias * 24 * 60 * 60 * 1000;
-  const fim = new Date(inicio.getTime() + duracaoMs);
-  const restanteMs = fim - agora;
-  const diasRestantes = Math.ceil(restanteMs / (1000 * 60 * 60 * 24));
+function atualizarSaldos() {
+  const plano = JSON.parse(localStorage.getItem("planoAtivo"));
+  document.getElementById("saldoLivre").innerHTML = `Saldo livre: R$ ${carteira.saldoLivre.toFixed(2)}`;
+  document.getElementById("saldoPlano").innerHTML = `Saldo investido no Plano B: R$ ${plano && plano.saldoInvestido ? plano.saldoInvestido.toFixed(2) : "0,00"}`;
 
-  if (diasRestantes <= 0) {
-    planoInfo.innerHTML = `
-      <p><strong>${plano.nome}</strong></p>
-      <p class="status expirado">Plano expirado</p>
-      <button onclick="location.href='planos.html'">Renovar Plano</button>
-    `;
+  /* Mostra info do plano */
+  const planoInfo = document.getElementById("planoInfo");
+  if (!plano) {
+    planoInfo.innerHTML = `<p class="expirado">Nenhum plano ativo</p>`;
   } else {
-    planoInfo.innerHTML = `
-      <p><strong>${plano.nome}</strong></p>
-      <p class="status ativo">Ativo</p>
-      <p>Dias restantes: <strong>${diasRestantes}</strong></p>
-    `;
+    const inicio = new Date(plano.inicio);
+    const agora = new Date();
+    const fim = new Date(inicio.getTime() + plano.duracaoDias*24*60*60*1000);
+    const diasRestantes = Math.ceil((fim - agora)/(1000*60*60*24));
+    if(diasRestantes <=0 || plano.saldoInvestido <=0){
+      planoInfo.innerHTML = `<p>${plano.nome}</p><p class="expirado">Plano expirado</p><p>Saldo: R$ ${plano.saldoInvestido.toFixed(2)}</p>`;
+    } else {
+      planoInfo.innerHTML = `<p>${plano.nome}</p><p class="ativo">Ativo</p><p>Dias restantes: ${diasRestantes}</p><p>Saldo investido: R$ ${plano.saldoInvestido.toFixed(2)}</p>`;
+    }
   }
 }
 
+atualizarSaldos();
+
+/* 🔹 ATIVAR PLANO B */
+function ativarPlanoB() {
+  if(carteira.saldoLivre <=0){
+    alert("Saldo insuficiente na carteira para ativar o plano!");
+    return;
+  }
+  const valorInvestido = prompt(`Saldo disponível: R$ ${carteira.saldoLivre.toFixed(2)}\nQuanto deseja investir no Plano B?`, carteira.saldoLivre);
+  const valor = parseFloat(valorInvestido);
+  if(isNaN(valor) || valor <=0 || valor > carteira.saldoLivre){
+    alert("Valor inválido!");
+    return;
+  }
+
+  const plano = {
+    nome: "Plano B",
+    tipo: "gestao_saldo",
+    inicio: new Date().toISOString(),
+    duracaoDias: 10,
+    saldoInvestido: valor
+  };
+  localStorage.setItem("planoAtivo", JSON.stringify(plano));
+
+  // Atualiza saldo livre
+  carteira.saldoLivre -= valor;
+  localStorage.setItem("carteira", JSON.stringify(carteira));
+
+  atualizarSaldos();
+  alert(`Plano B ativado com R$ ${valor.toFixed(2)} investidos!`);
+}
+
 /* 🚪 LOGOUT */
-function logout() {
+function logout(){
   localStorage.removeItem("session");
   window.location.href = "login.html";
 }
