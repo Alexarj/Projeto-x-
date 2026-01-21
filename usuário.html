@@ -66,6 +66,10 @@
     button:hover {
       background: #1d4ed8;
     }
+
+    ul {
+      padding-left: 18px;
+    }
   </style>
 </head>
 <body>
@@ -91,9 +95,14 @@
     <button onclick="ativarPlanoB()">Ativar Plano B</button>
   </div>
 
+  <!-- HISTÓRICO -->
+  <div class="card">
+    <h2>Histórico de Operações</h2>
+    <ul id="historicoOperacoes"></ul>
+  </div>
+
   <!-- AÇÕES -->
   <div class="card">
-    <h2>Ações</h2>
     <button onclick="logout()">Sair</button>
   </div>
 
@@ -112,10 +121,9 @@ localStorage.setItem("carteira", JSON.stringify(carteira));
 
 function atualizarSaldos() {
   const plano = JSON.parse(localStorage.getItem("planoAtivo"));
-  document.getElementById("saldoLivre").innerHTML = `Saldo livre: R$ ${carteira.saldoLivre.toFixed(2)}`;
-  document.getElementById("saldoPlano").innerHTML = `Saldo investido no Plano B: R$ ${plano && plano.saldoInvestido ? plano.saldoInvestido.toFixed(2) : "0,00"}`;
+  document.getElementById("saldoLivre").innerText = `Saldo livre: R$ ${carteira.saldoLivre.toFixed(2)}`;
+  document.getElementById("saldoPlano").innerText = `Saldo investido no Plano B: R$ ${plano && plano.saldoInvestido ? plano.saldoInvestido.toFixed(2) : "0,00"}`;
 
-  /* Mostra info do plano */
   const planoInfo = document.getElementById("planoInfo");
   if (!plano) {
     planoInfo.innerHTML = `<p class="expirado">Nenhum plano ativo</p>`;
@@ -130,9 +138,27 @@ function atualizarSaldos() {
       planoInfo.innerHTML = `<p>${plano.nome}</p><p class="ativo">Ativo</p><p>Dias restantes: ${diasRestantes}</p><p>Saldo investido: R$ ${plano.saldoInvestido.toFixed(2)}</p>`;
     }
   }
+
+  atualizarHistorico();
 }
 
-atualizarSaldos();
+/* 🔹 HISTÓRICO DE OPERAÇÕES */
+function atualizarHistorico(){
+  const historico = JSON.parse(localStorage.getItem("historicoOperacoes")) || [];
+  const ul = document.getElementById("historicoOperacoes");
+  ul.innerHTML = "";
+
+  if(historico.length === 0){
+    ul.innerHTML = "<li>Nenhuma operação realizada</li>";
+    return;
+  }
+
+  historico.forEach(op => {
+    const li = document.createElement("li");
+    li.textContent = `${new Date(op.data).toLocaleString()} - ${op.tipo} de R$ ${op.valor.toFixed(2)} → ${op.resultado >=0 ? 'Lucro':'Perda'}: R$ ${op.resultado.toFixed(2)}`;
+    ul.appendChild(li);
+  });
+}
 
 /* 🔹 ATIVAR PLANO B */
 function ativarPlanoB() {
@@ -169,6 +195,9 @@ function logout(){
   localStorage.removeItem("session");
   window.location.href = "login.html";
 }
+
+/* Inicializa painel */
+atualizarSaldos();
 </script>
 
 </body>
