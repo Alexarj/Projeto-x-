@@ -1,1 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel do Trader – Projeto X</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+/* HEADER */
+header {
+  background: #020617;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 22px;
+  color: #22c55e;
+}
+
+.btn-sair {
+  background: #ef4444;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* MENU */
+.menu {
+  display: flex;
+  gap: 10px;
+  background: #020617;
+  padding: 10px 20px;
+}
+
+.menu button {
+  background: #1e293b;
+  color: #e5e7eb;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.menu button:hover {
+  background: #22c55e;
+  color: #020617;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* CARDS */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: #020617;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.card h2 {
+  margin-top: 0;
+  color: #22c55e;
+}
+
+/* TABELA */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th, table td {
+  padding: 10px;
+  border-bottom: 1px solid #1e293b;
+  text-align: left;
+}
+
+table th {
+  color: #22c55e;
+}
+
+/* FORM */
+input, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+.btn {
+  background: #22c55e;
+  color: #020617;
+  border: none;
+  padding: 12px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Painel do Trader</h1>
+  <button class="btn-sair" onclick="sair()">Sair</button>
+</header>
+
+<nav class="menu">
+  <button onclick="mostrar('dashboard')">Dashboard</button>
+  <button onclick="mostrar('usuarios')">Usuários</button>
+  <button onclick="mostrar('operacoes')">Operações</button>
+  <button onclick="mostrar('historico')">Histórico</button>
+</nav>
+
+<div class="container">
+
+  <!-- DASHBOARD -->
+  <section id="dashboard">
+    <div class="cards">
+      <div class="card">
+        <h2>Capital Total</h2>
+        <p>R$ 1.200,00</p>
+      </div>
+
+      <div class="card">
+        <h2>Risco Máx. por Operação</h2>
+        <p>2%</p>
+      </div>
+
+      <div class="card">
+        <h2>Status do Dia</h2>
+        <p style="color:#22c55e">Operando</p>
+      </div>
+
+      <div class="card">
+        <h2>Operações</h2>
+        <p>Abertas: 1</p>
+        <p>Encerradas hoje: 2</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- USUÁRIOS -->
+  <section id="usuarios" style="display:none">
+    <div class="card">
+      <h2>Usuários Ativos</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Usuário</th>
+            <th>Saldo Total</th>
+            <th>Saldo Liberado</th>
+            <th>Plano</th>
+            <th>Tempo Restante</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Usuário 01</td>
+            <td>R$ 50,00</td>
+            <td>R$ 20,00</td>
+            <td>Nível 1</td>
+            <td>8 dias</td>
+          </tr>
+          <tr>
+            <td>Usuário 02</td>
+            <td>R$ 20,00</td>
+            <td>R$ 20,00</td>
+            <td>12h</td>
+            <td>6h</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- OPERAÇÕES -->
+  <section id="operacoes" style="display:none">
+    <div class="card">
+      <h2>Registrar Operação</h2>
+
+      <select>
+        <option>Selecionar usuário</option>
+        <option>Usuário 01</option>
+        <option>Usuário 02</option>
+      </select>
+
+      <select>
+        <option>Mercado</option>
+        <option>Back</option>
+        <option>Lay</option>
+      </select>
+
+      <input type="text" placeholder="Evento / Jogo">
+      <input type="text" placeholder="Resultado (%)">
+
+      <button class="btn">Registrar Operação</button>
+    </div>
+  </section>
+
+  <!-- HISTÓRICO DO TRADER -->
+  <section id="historico" style="display:none">
+    <div class="card">
+      <h2>Histórico do Trader</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>Usuário</th>
+            <th>Mercado</th>
+            <th>Resultado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>10:30</td>
+            <td>Usuário 01</td>
+            <td>Lay</td>
+            <td style="color:#22c55e">+2%</td>
+          </tr>
+          <tr>
+            <td>11:10</td>
+            <td>Usuário 02</td>
+            <td>Back</td>
+            <td style="color:#ef4444">-1%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<script>
+function mostrar(secao) {
+  const secoes = ["dashboard","usuarios","operacoes","historico"];
+  secoes.forEach(id => document.getElementById(id).style.display = "none");
+  document.getElementById(secao).style.display = "block";
+}
+
+function sair() {
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+        </html>
