@@ -1,121 +1,131 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Projeto X – Home</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Projeto X – Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #0f172a, #020617);
-  color: #e5e7eb;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 20px;
-  text-align: center;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #020617);
+      color: #e5e7eb;
+      line-height: 1.6;
+    }
 
-.container {
-  max-width: 700px;
-  background-color: #020617;
-  padding: 40px 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.7);
-}
+    header {
+      background: #020617;
+      padding: 32px 20px;
+      text-align: center;
+    }
 
-.logo {
-  font-size: 36px;
-  font-weight: bold;
-  color: #38bdf8;
-  margin-bottom: 16px;
-  text-shadow: 0 0 10px #38bdf8;
-}
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
 
-h2 {
-  color: #38bdf8;
-}
+    header p {
+      margin-top: 8px;
+      color: #9ca3af;
+    }
 
-p {
-  color: #e5e7eb;
-  line-height: 1.6;
-  margin-bottom: 20px;
-}
+    section {
+      max-width: 900px;
+      margin: auto;
+      padding: 24px 20px;
+    }
 
-.btn-principal {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 6px;
-  background-color: #38bdf8;
-  color: #020617;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  margin-bottom: 16px;
-  transition: all 0.3s ease;
-}
+    .box {
+      background: #020617;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,.4);
+    }
 
-.btn-principal:hover {
-  background-color: #0ea5e9;
-  transform: scale(1.05);
-}
+    h2 {
+      color: #38bdf8;
+      margin-top: 0;
+    }
 
-.botoes-links {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
+    footer {
+      background: #020617;
+      text-align: center;
+      padding: 16px;
+      font-size: 14px;
+      color: #9ca3af;
+    }
 
-.botao-link {
-  padding: 10px 20px;
-  background-color: #64748b;
-  color: #e5e7eb;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  text-decoration: none;
-}
-
-.botao-link:hover {
-  background-color: #475569;
-  transform: scale(1.05);
-}
-
-@media (max-width: 500px) {
-  .botoes-links { flex-direction: column; }
-  .botao-link { width: 100%; }
-}
-</style>
+    footer a {
+      color: #38bdf8;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="logo">Projeto X</div>
+<header>
+  <h1>Projeto X</h1>
+  <p>Trading esportivo em Exchange com leitura de mercado e gestão de risco</p>
+</header>
 
-  <h2>Conheça a Ideia</h2>
-  <p>
-    O Projeto X é um sistema de trading esportivo focado em bolsas de apostas (Exchange),
-    com prioridade para futebol. A proposta é oferecer sinais de operações e gestão de risco.
-  </p>
-  <p>
-    Escolha seu plano e acompanhe o mercado com transparência e segurança.
-  </p>
+<section>
 
-  <!-- Botão de Login -->
-  <button class="btn-principal" onclick="window.location.href='login.html'">Entrar / Login</button>
+  <div class="box">
+    <h2>O que é o Projeto X</h2>
+    <p>
+      O <strong>Projeto X</strong> é um projeto independente focado em
+      <strong>trading esportivo em bolsas de apostas (Exchange)</strong>,
+      com foco principal em futebol.
+    </p>
+    <p>
+      As operações são manuais, baseadas em leitura de mercado.
+      Não há promessa de lucro ou garantia de resultados.
+    </p>
 
-  <!-- Botões Termos e Risco -->
-  <div class="botoes-links">
-    <a class="botao-link" href="termos.html" target="_blank">Termos de Uso</a>
-    <a class="botao-link" href="risco.html" target="_blank">Política de Risco</a>
+    <!-- BOTÃO VER PLANOS -->
+    <div style="text-align:center; margin-top:32px;">
+      <a href="planos.html"
+         style="
+           display:inline-block;
+           padding:14px 30px;
+           background:#2563eb;
+           color:#ffffff;
+           text-decoration:none;
+           border-radius:8px;
+           font-size:16px;
+           font-weight:600;
+           transition: background 0.3s;
+         "
+         onmouseover="this.style.background='#1d4ed8'"
+         onmouseout="this.style.background='#2563eb'"
+      >
+        Ver Planos
+      </a>
+    </div>
+    <!-- FIM DO BOTÃO -->
+
   </div>
-</div>
+
+  <div class="box">
+    <h2>Como funciona</h2>
+    <ul>
+      <li>Atuação em mercados de Exchange (ex: Betfair)</li>
+      <li>1 a 3 sinais por dia, quando houver oportunidade</li>
+      <li>Gestão de risco aplicada</li>
+      <li>Sem uso de martingale (gale)</li>
+    </ul>
+  </div>
+
+</section>
+
+<footer>
+  © 2026 – Projeto X |
+  <a href="termos.html">Termos de Uso</a> |
+  <a href="risco.html">Política de Risco</a>
+</footer>
 
 </body>
 </html>
