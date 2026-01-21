@@ -1,202 +1,121 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Projeto X – Painel do Trader</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(135deg, #020617, #0f172a);
-      color: #e5e7eb;
-    }
-
-    header {
-      background: #020617;
-      padding: 25px;
-      text-align: center;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 30px 20px;
-    }
-
-    .card {
-      background: #020617;
-      border-radius: 12px;
-      padding: 25px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,.4);
-    }
-
-    .card h2 {
-      margin-top: 0;
-      color: #60a5fa;
-    }
-
-    .ativo { color: #22c55e; }
-    .expirado { color: #ef4444; }
-
-    button {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      background: #2563eb;
-      color: #fff;
-      font-size: 15px;
-      cursor: pointer;
-      margin-top: 10px;
-      margin-right: 8px;
-    }
-    button:hover { background: #1d4ed8; }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: none;
-      background: #0f172a;
-      color: #fff;
-    }
-
-    ul { padding-left: 18px; }
-  </style>
+<meta charset="UTF-8">
+<title>Projeto X – Painel do Trader</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0f172a; color:#e5e7eb;}
+header{background:#020617; padding:20px; text-align:center;}
+h1{color:#38bdf8;}
+.container{max-width:900px; margin:20px auto; padding:20px;}
+.card{background:#020617; padding:20px; border-radius:10px; margin-bottom:20px;}
+button{padding:10px 20px; border:none; border-radius:6px; background:#2563eb; color:#fff; cursor:pointer; margin:5px 0;}
+button:hover{background:#1d4ed8;}
+#historico{max-height:250px; overflow-y:auto; margin-top:10px;}
+input{padding:8px; border-radius:5px; border:none; background:#0f172a; color:#fff; width:80px; margin-right:10px;}
+</style>
 </head>
 <body>
 
 <header>
   <h1>Painel do Trader</h1>
-  <p>Operando apenas o saldo do Plano B</p>
 </header>
 
 <div class="container">
-
-  <!-- SALDO DO PLANO -->
+  <!-- Saldo do Plano -->
   <div class="card">
     <h2>Saldo do Plano B</h2>
-    <p id="saldoPlano">R$ 0,00</p>
-    <p id="diasRestantes">Dias restantes: 0</p>
+    <p>Saldo disponível para operações: R$ <span id="saldoPlano">0,00</span></p>
+    <p>Status do Plano: <span id="statusPlano">Inativo</span></p>
   </div>
 
-  <!-- SIMULAÇÃO DE OPERAÇÃO -->
+  <!-- Operações -->
   <div class="card">
-    <h2>Operações</h2>
-    <input type="number" id="valorOperacao" placeholder="Valor a operar">
-    <button onclick="realizarOperacao()">Simular Operação</button>
-    <p id="statusOperacao"></p>
+    <h2>Nova Operação</h2>
+    <input type="number" id="valorOperacao" placeholder="R$" min="1">
+    <button onclick="realizarOperacao()">Realizar Operação</button>
   </div>
 
-  <!-- HISTÓRICO DE OPERAÇÕES -->
+  <!-- Histórico -->
   <div class="card">
     <h2>Histórico de Operações</h2>
-    <ul id="historicoOperacoes"></ul>
+    <div id="historico">
+      <p>Nenhuma operação realizada ainda.</p>
+    </div>
   </div>
 
-  <div class="card">
-    <button onclick="logout()">Sair</button>
-  </div>
-
+  <!-- Logout -->
+  <button onclick="logout()">Sair</button>
 </div>
 
 <script>
-/* 🔒 PROTEÇÃO DE LOGIN */
-const session = JSON.parse(localStorage.getItem("session"));
-if(!session || session.tipo !== "trader"){
-  window.location.href = "login.html";
-}
+// Saldo e histórico compartilhados com usuário
+let saldoPlano = parseFloat(localStorage.getItem("saldoPlano")) || 0;
+let planoAtivo = localStorage.getItem("planoAtivo") === "true" || false;
+let tempoInicial = parseInt(localStorage.getItem("tempoFimPlano")) || null;
+let historico = JSON.parse(localStorage.getItem("historico")) || [];
 
-/* 🔹 CARREGAR PLANO */
-let plano = JSON.parse(localStorage.getItem("planoAtivo")) || null;
+// Atualiza painel
+function atualizarDashboard(){
+  document.getElementById("saldoPlano").innerText = saldoPlano.toFixed(2);
 
-function atualizarPainel(){
-  const agora = new Date();
-  const inicio = plano ? new Date(plano.inicio) : null;
-  const fim = inicio ? new Date(inicio.getTime() + plano.duracaoDias*24*60*60*1000) : null;
-  const diasRestantes = plano ? Math.ceil((fim - agora)/(1000*60*60*24)) : 0;
+  // Status do plano
+  if(planoAtivo && tempoInicial){
+    const agora = new Date().getTime();
+    let diff = tempoInicial - agora;
+    if(diff <= 0){
+      document.getElementById("statusPlano").innerText = "Encerrado";
+      planoAtivo = false;
+      saldoPlano = 0;
+      localStorage.setItem("saldoPlano", saldoPlano);
+      localStorage.setItem("planoAtivo", planoAtivo);
+      historico.push(`Plano B encerrado automaticamente em ${new Date().toLocaleString()}`);
+      localStorage.setItem("historico", JSON.stringify(historico));
+    } else {
+      let dias = Math.floor(diff / (1000*60*60*24));
+      document.getElementById("statusPlano").innerText = (dias<=1) ? "Expirando" : "Ativo";
+    }
+  } else {
+    document.getElementById("statusPlano").innerText = "Inativo";
+  }
 
-  document.getElementById("diasRestantes").innerText = plano ? `Dias restantes: ${diasRestantes > 0 ? diasRestantes : 0}` : '';
-  document.getElementById("saldoPlano").innerText = plano ? `R$ ${plano.saldoInvestido.toFixed(2)}` : "Nenhum plano ativo";
-
-  atualizarHistorico();
-}
-
-/* 🔹 HISTÓRICO DE OPERAÇÕES */
-function atualizarHistorico(){
-  const historico = JSON.parse(localStorage.getItem("historicoOperacoes")) || [];
-  const ul = document.getElementById("historicoOperacoes");
-  ul.innerHTML = "";
-
+  // Atualiza histórico
+  const histDiv = document.getElementById("historico");
   if(historico.length === 0){
-    ul.innerHTML = "<li>Nenhuma operação realizada</li>";
-    return;
+    histDiv.innerHTML = "<p>Nenhuma operação realizada ainda.</p>";
+  } else {
+    histDiv.innerHTML = historico.map(op=>`<p>${op}</p>`).join("");
   }
-
-  historico.forEach(op => {
-    const li = document.createElement("li");
-    li.textContent = `${new Date(op.data).toLocaleString()} - ${op.tipo} de R$ ${op.valor.toFixed(2)} → ${op.resultado >=0 ? 'Lucro':'Perda'}: R$ ${op.resultado.toFixed(2)}`;
-    ul.appendChild(li);
-  });
 }
 
-/* 🔹 SIMULAÇÃO DE OPERAÇÃO */
+// Realizar operação simulada
 function realizarOperacao(){
-  if(!plano){
-    alert("Não há plano ativo!");
-    return;
-  }
+  if(!planoAtivo){ alert("Plano não está ativo."); return; }
+  let valor = parseFloat(document.getElementById("valorOperacao").value);
+  if(isNaN(valor) || valor <= 0){ alert("Digite um valor válido."); return; }
+  if(valor > saldoPlano){ alert("Saldo insuficiente para esta operação."); return; }
 
-  const agora = new Date();
-  const inicio = new Date(plano.inicio);
-  const fim = new Date(inicio.getTime() + plano.duracaoDias*24*60*60*1000);
-  if(agora > fim){
-    alert("Plano expirado!");
-    return;
-  }
+  // Simulação de lucro/perda aleatório (-20% a +20%)
+  let resultado = (Math.random() * 0.4 - 0.2) * valor;
+  saldoPlano += resultado - valor;
+  saldoPlano = Math.max(saldoPlano, 0);
+  localStorage.setItem("saldoPlano", saldoPlano);
 
-  const valor = parseFloat(document.getElementById("valorOperacao").value);
-  if(isNaN(valor) || valor <= 0){
-    alert("Insira um valor válido!");
-    return;
-  }
-
-  if(valor > plano.saldoInvestido){
-    alert("Valor maior que saldo do plano!");
-    return;
-  }
-
-  /* Simulação aleatória: 50% ganha 5%, 50% perde 5% */
-  const ganho = Math.random() < 0.5 ? valor*0.05 : -valor*0.05;
-  plano.saldoInvestido += ganho;
-  plano.saldoInvestido = Math.max(plano.saldoInvestido,0);
-  localStorage.setItem("planoAtivo", JSON.stringify(plano));
-
-  /* Registro no histórico */
-  let historico = JSON.parse(localStorage.getItem("historicoOperacoes")) || [];
-  historico.push({
-    data: new Date().toISOString(),
-    tipo: "Plano B",
-    valor: valor,
-    resultado: ganho
-  });
-  localStorage.setItem("historicoOperacoes", JSON.stringify(historico));
-
-  document.getElementById("statusOperacao").innerText = `Operação concluída: ${ganho>=0 ? 'Lucro':'Perda'} de R$ ${ganho.toFixed(2)}`;
-  atualizarPainel();
+  // Atualiza histórico
+  historico.push(`Operação: R$${valor.toFixed(2)} → Resultado: R$${resultado.toFixed(2)} em ${new Date().toLocaleString()}`);
+  localStorage.setItem("historico", JSON.stringify(historico));
+  atualizarDashboard();
 }
 
-/* 🚪 LOGOUT */
+// Logout
 function logout(){
   localStorage.removeItem("session");
   window.location.href = "login.html";
 }
 
-/* Inicializa painel */
-atualizarPainel();
+atualizarDashboard();
+setInterval(atualizarDashboard, 1000);
 </script>
 
 </body>
