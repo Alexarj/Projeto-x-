@@ -1,203 +1,133 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Projeto X – Painel do Usuário</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(135deg, #020617, #0f172a);
-      color: #e5e7eb;
-    }
-
-    header {
-      background: #020617;
-      padding: 25px;
-      text-align: center;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 30px 20px;
-    }
-
-    .card {
-      background: #020617;
-      border-radius: 12px;
-      padding: 25px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,.4);
-    }
-
-    .card h2 {
-      margin-top: 0;
-      color: #60a5fa;
-    }
-
-    .status {
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    .ativo {
-      color: #22c55e;
-    }
-
-    .expirado {
-      color: #ef4444;
-    }
-
-    button {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      background: #2563eb;
-      color: #fff;
-      font-size: 15px;
-      cursor: pointer;
-      margin-top: 10px;
-      margin-right: 8px;
-    }
-
-    button:hover {
-      background: #1d4ed8;
-    }
-
-    ul {
-      padding-left: 18px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Projeto X – Painel do Usuário</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0f172a; color:#e5e7eb;}
+header{background:#020617; padding:20px; text-align:center;}
+h1{color:#38bdf8;}
+.container{max-width:900px; margin:20px auto; padding:20px;}
+.card{background:#020617; padding:20px; border-radius:10px; margin-bottom:20px;}
+button{padding:10px 20px; border:none; border-radius:6px; background:#2563eb; color:#fff; cursor:pointer;}
+button:hover{background:#1d4ed8;}
+#historico{max-height:200px; overflow-y:auto; margin-top:10px;}
+</style>
 </head>
 <body>
 
 <header>
   <h1>Painel do Usuário</h1>
-  <p>Projeto X</p>
 </header>
 
 <div class="container">
-
-  <!-- SALDO -->
   <div class="card">
     <h2>Carteira</h2>
-    <p id="saldoLivre">Saldo livre: R$ 0,00</p>
-    <p id="saldoPlano">Saldo investido no Plano B: R$ 0,00</p>
+    <p>Saldo Livre: R$ <span id="saldoLivre">100,00</span></p>
+    <p>Saldo do Plano B: R$ <span id="saldoPlano">0,00</span></p>
   </div>
 
-  <!-- PLANO -->
-  <div class="card">
-    <h2>Plano Ativo</h2>
-    <div id="planoInfo"></div>
-    <button onclick="ativarPlanoB()">Ativar Plano B</button>
+  <div class="card plano-status">
+    <h2>Plano B – Gestão de Saldo</h2>
+    <p>Status: <span id="statusPlano">Inativo</span></p>
+    <p>Tempo restante: <span id="tempoRestante">00d 00h 00m</span></p>
+    <p>Saldo investido: R$ <span id="saldoInvestidoPlano">0,00</span></p>
+    <button onclick="encerrarPlano()">Encerrar Plano</button>
+    <button onclick="ativarPlano()">Ativar Plano B (R$50)</button>
   </div>
 
-  <!-- HISTÓRICO -->
   <div class="card">
     <h2>Histórico de Operações</h2>
-    <ul id="historicoOperacoes"></ul>
+    <div id="historico">
+      <p>Nenhuma operação realizada ainda.</p>
+    </div>
   </div>
 
-  <!-- AÇÕES -->
-  <div class="card">
-    <button onclick="logout()">Sair</button>
-  </div>
-
+  <button onclick="logout()">Sair</button>
 </div>
 
 <script>
-/* 🔒 PROTEÇÃO DE LOGIN */
-const session = JSON.parse(localStorage.getItem("session"));
-if (!session || session.tipo !== "usuario") {
-  window.location.href = "login.html";
-}
+// Simulação de saldo
+let saldoLivre = parseFloat(localStorage.getItem("saldoLivre")) || 100;
+let saldoPlano = parseFloat(localStorage.getItem("saldoPlano")) || 0;
+let planoAtivo = localStorage.getItem("planoAtivo") === "true" || false;
+let tempoInicial = parseInt(localStorage.getItem("tempoFimPlano")) || null;
+let historico = JSON.parse(localStorage.getItem("historico")) || [];
 
-/* 💰 CARTEIRA */
-let carteira = JSON.parse(localStorage.getItem("carteira")) || { saldoLivre: 50 };
-localStorage.setItem("carteira", JSON.stringify(carteira));
+function atualizarDashboard(){
+  document.getElementById("saldoLivre").innerText = saldoLivre.toFixed(2);
+  document.getElementById("saldoPlano").innerText = saldoPlano.toFixed(2);
+  document.getElementById("saldoInvestidoPlano").innerText = saldoPlano.toFixed(2);
 
-function atualizarSaldos() {
-  const plano = JSON.parse(localStorage.getItem("planoAtivo"));
-  document.getElementById("saldoLivre").innerText = `Saldo livre: R$ ${carteira.saldoLivre.toFixed(2)}`;
-  document.getElementById("saldoPlano").innerText = `Saldo investido no Plano B: R$ ${plano && plano.saldoInvestido ? plano.saldoInvestido.toFixed(2) : "0,00"}`;
-
-  const planoInfo = document.getElementById("planoInfo");
-  if (!plano) {
-    planoInfo.innerHTML = `<p class="expirado">Nenhum plano ativo</p>`;
-  } else {
-    const inicio = new Date(plano.inicio);
-    const agora = new Date();
-    const fim = new Date(inicio.getTime() + plano.duracaoDias*24*60*60*1000);
-    const diasRestantes = Math.ceil((fim - agora)/(1000*60*60*24));
-    if(diasRestantes <=0 || plano.saldoInvestido <=0){
-      planoInfo.innerHTML = `<p>${plano.nome}</p><p class="expirado">Plano expirado</p><p>Saldo: R$ ${plano.saldoInvestido.toFixed(2)}</p>`;
+  if(planoAtivo && tempoInicial){
+    const agora = new Date().getTime();
+    let diff = tempoInicial - agora;
+    if(diff <= 0){
+      document.getElementById("statusPlano").innerText = "Encerrado";
+      document.getElementById("tempoRestante").innerText = "00d 00h 00m";
+      planoAtivo = false;
+      localStorage.setItem("planoAtivo", false);
+      saldoLivre += saldoPlano;
+      saldoPlano = 0;
+      localStorage.setItem("saldoLivre", saldoLivre);
+      localStorage.setItem("saldoPlano", saldoPlano);
     } else {
-      planoInfo.innerHTML = `<p>${plano.nome}</p><p class="ativo">Ativo</p><p>Dias restantes: ${diasRestantes}</p><p>Saldo investido: R$ ${plano.saldoInvestido.toFixed(2)}</p>`;
+      let dias = Math.floor(diff / (1000*60*60*24));
+      let horas = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+      let minutos = Math.floor((diff % (1000*60*60)) / (1000*60));
+      document.getElementById("tempoRestante").innerText = `${dias}d ${horas}h ${minutos}m`;
+      document.getElementById("statusPlano").innerText = (dias<=1) ? "Expirando" : "Ativo";
     }
+  } else {
+    document.getElementById("statusPlano").innerText = "Inativo";
+    document.getElementById("tempoRestante").innerText = "00d 00h 00m";
   }
 
-  atualizarHistorico();
-}
-
-/* 🔹 HISTÓRICO DE OPERAÇÕES */
-function atualizarHistorico(){
-  const historico = JSON.parse(localStorage.getItem("historicoOperacoes")) || [];
-  const ul = document.getElementById("historicoOperacoes");
-  ul.innerHTML = "";
-
+  // Atualiza histórico
+  const histDiv = document.getElementById("historico");
   if(historico.length === 0){
-    ul.innerHTML = "<li>Nenhuma operação realizada</li>";
-    return;
+    histDiv.innerHTML = "<p>Nenhuma operação realizada ainda.</p>";
+  } else {
+    histDiv.innerHTML = historico.map(op=>`<p>${op}</p>`).join("");
   }
-
-  historico.forEach(op => {
-    const li = document.createElement("li");
-    li.textContent = `${new Date(op.data).toLocaleString()} - ${op.tipo} de R$ ${op.valor.toFixed(2)} → ${op.resultado >=0 ? 'Lucro':'Perda'}: R$ ${op.resultado.toFixed(2)}`;
-    ul.appendChild(li);
-  });
 }
 
-/* 🔹 ATIVAR PLANO B */
-function ativarPlanoB() {
-  if(carteira.saldoLivre <=0){
-    alert("Saldo insuficiente na carteira para ativar o plano!");
-    return;
-  }
-  const valorInvestido = prompt(`Saldo disponível: R$ ${carteira.saldoLivre.toFixed(2)}\nQuanto deseja investir no Plano B?`, carteira.saldoLivre);
-  const valor = parseFloat(valorInvestido);
-  if(isNaN(valor) || valor <=0 || valor > carteira.saldoLivre){
-    alert("Valor inválido!");
-    return;
-  }
-
-  const plano = {
-    nome: "Plano B",
-    tipo: "gestao_saldo",
-    inicio: new Date().toISOString(),
-    duracaoDias: 10,
-    saldoInvestido: valor
-  };
-  localStorage.setItem("planoAtivo", JSON.stringify(plano));
-
-  // Atualiza saldo livre
-  carteira.saldoLivre -= valor;
-  localStorage.setItem("carteira", JSON.stringify(carteira));
-
-  atualizarSaldos();
-  alert(`Plano B ativado com R$ ${valor.toFixed(2)} investidos!`);
+function ativarPlano(){
+  if(saldoLivre < 50){ alert("Saldo insuficiente para ativar o plano."); return; }
+  saldoLivre -= 50;
+  saldoPlano += 50;
+  planoAtivo = true;
+  tempoInicial = new Date().getTime() + 10*24*60*60*1000; // 10 dias
+  localStorage.setItem("saldoLivre", saldoLivre);
+  localStorage.setItem("saldoPlano", saldoPlano);
+  localStorage.setItem("planoAtivo", planoAtivo);
+  localStorage.setItem("tempoFimPlano", tempoInicial);
+  historico.push(`Plano B ativado: R$50,00 em ${new Date().toLocaleString()}`);
+  localStorage.setItem("historico", JSON.stringify(historico));
+  atualizarDashboard();
 }
 
-/* 🚪 LOGOUT */
+function encerrarPlano(){
+  if(!planoAtivo){ alert("Plano não está ativo."); return; }
+  planoAtivo = false;
+  saldoLivre += saldoPlano;
+  historico.push(`Plano B encerrado manualmente em ${new Date().toLocaleString()}`);
+  saldoPlano = 0;
+  localStorage.setItem("saldoLivre", saldoLivre);
+  localStorage.setItem("saldoPlano", saldoPlano);
+  localStorage.setItem("planoAtivo", planoAtivo);
+  localStorage.setItem("historico", JSON.stringify(historico));
+  atualizarDashboard();
+}
+
 function logout(){
   localStorage.removeItem("session");
   window.location.href = "login.html";
 }
 
-/* Inicializa painel */
-atualizarSaldos();
+atualizarDashboard();
+setInterval(atualizarDashboard, 1000);
 </script>
 
 </body>
