@@ -2,221 +2,181 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Painel do Trader – Projeto X</title>
+  <title>Projeto X – Painel do Trader</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #0f172a;
+      background: linear-gradient(135deg, #020617, #0f172a);
       color: #e5e7eb;
     }
 
     header {
       background: #020617;
-      padding: 20px;
+      padding: 25px;
       text-align: center;
     }
 
-    section {
-      max-width: 1000px;
+    .container {
+      max-width: 900px;
       margin: auto;
-      padding: 20px;
+      padding: 30px 20px;
     }
 
-    .box {
+    .card {
       background: #020617;
-      padding: 20px;
-      border-radius: 8px;
+      border-radius: 12px;
+      padding: 25px;
       margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,.4);
     }
 
-    h2 {
-      color: #38bdf8;
+    .card h2 {
       margin-top: 0;
+      color: #60a5fa;
     }
 
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      margin-bottom: 12px;
-      border-radius: 5px;
-      border: none;
+    .status {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .ativo {
+      color: #22c55e;
+    }
+
+    .expirado {
+      color: #ef4444;
     }
 
     button {
-      background: #38bdf8;
-      color: #020617;
-      font-weight: bold;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: #fff;
+      font-size: 15px;
       cursor: pointer;
+      margin-top: 10px;
+      margin-right: 8px;
     }
 
-    table {
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    input {
       width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 8px;
-      border-bottom: 1px solid #1e293b;
-      text-align: center;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+      background: #0f172a;
+      color: #fff;
     }
   </style>
 </head>
-
 <body>
-
-<script>
-  // 🔐 PROTEÇÃO
-  if (
-    localStorage.getItem("logado") !== "true" ||
-    localStorage.getItem("tipoUsuario") !== "trader"
-  ) {
-    window.location.href = "login.html";
-  }
-</script>
 
 <header>
   <h1>Painel do Trader</h1>
-  <p>Gestão de operações e risco</p>
+  <p>Operando apenas o saldo do Plano B</p>
 </header>
 
-<section>
+<div class="container">
 
-  <!-- CONFIGURAÇÕES -->
-  <div class="box">
-    <h2>Configurações do Trader</h2>
-
-    <label>Limite diário de operações</label>
-    <input type="number" id="limiteOps" placeholder="Ex: 5">
-
-    <label>Risco máximo por operação (%)</label>
-    <input type="number" id="risco" placeholder="Ex: 5">
-
-    <button onclick="salvarConfiguracoes()">Salvar Configurações</button>
+  <!-- SALDO DO PLANO -->
+  <div class="card">
+    <h2>Saldo do Plano B</h2>
+    <p id="saldoPlano">R$ 0,00</p>
+    <p id="diasRestantes">Dias restantes: 0</p>
   </div>
 
-  <!-- NOVA OPERAÇÃO -->
-  <div class="box">
-    <h2>Criar Operação</h2>
-
-    <input type="text" id="mercado" placeholder="Mercado / Evento">
-    <input type="number" id="odd" step="0.01" placeholder="Odd">
-
-    <select id="resultado">
-      <option value="WIN">WIN</option>
-      <option value="LOSS">LOSS</option>
-    </select>
-
-    <button onclick="salvarOperacao()">Registrar Operação</button>
+  <!-- SIMULAÇÃO DE OPERAÇÃO -->
+  <div class="card">
+    <h2>Operações</h2>
+    <input type="number" id="valorOperacao" placeholder="Valor a operar">
+    <button onclick="realizarOperacao()">Simular Operação</button>
+    <p id="statusOperacao"></p>
   </div>
 
-  <!-- HISTÓRICO -->
-  <div class="box">
-    <h2>Operações Registradas</h2>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Mercado</th>
-          <th>Odd</th>
-          <th>Resultado</th>
-          <th>Data</th>
-        </tr>
-      </thead>
-      <tbody id="lista"></tbody>
-    </table>
-  </div>
-
-  <!-- CONTROLE -->
-  <div class="box">
-    <button onclick="resetarOperacoes()">Resetar Operações</button>
+  <div class="card">
     <button onclick="logout()">Sair</button>
   </div>
 
-</section>
+</div>
 
 <script>
-  let operacoes = JSON.parse(localStorage.getItem("operacoes")) || [];
-  let config = JSON.parse(localStorage.getItem("configTrader")) || {};
+/* 🔒 PROTEÇÃO DE LOGIN */
+const session = JSON.parse(localStorage.getItem("session"));
+if(!session || session.tipo !== "trader"){
+  window.location.href = "login.html";
+}
 
-  document.getElementById("limiteOps").value = config.limite || "";
-  document.getElementById("risco").value = config.risco || "";
+/* 🔹 CARREGAR PLANO */
+let plano = JSON.parse(localStorage.getItem("planoAtivo")) || null;
 
-  function salvarConfiguracoes() {
-    const limite = document.getElementById("limiteOps").value;
-    const risco = document.getElementById("risco").value;
+function atualizarPainel(){
+  if(!plano){
+    document.getElementById("saldoPlano").innerText = "Nenhum plano ativo";
+    document.getElementById("diasRestantes").innerText = "";
+    return;
+  }
+  const agora = new Date();
+  const inicio = new Date(plano.inicio);
+  const fim = new Date(inicio.getTime() + plano.duracaoDias*24*60*60*1000);
+  const diasRestantes = Math.ceil((fim - agora)/(1000*60*60*24));
+  
+  document.getElementById("diasRestantes").innerText = `Dias restantes: ${diasRestantes > 0 ? diasRestantes : 0}`;
+  document.getElementById("saldoPlano").innerText = `R$ ${plano.saldoInvestido.toFixed(2)}`;
+}
 
-    localStorage.setItem(
-      "configTrader",
-      JSON.stringify({ limite, risco })
-    );
+atualizarPainel();
 
-    alert("Configurações salvas.");
+/* 🔹 SIMULAÇÃO DE OPERAÇÃO */
+function realizarOperacao(){
+  if(!plano){
+    alert("Não há plano ativo!");
+    return;
   }
 
-  function salvarOperacao() {
-    if (
-      config.limite &&
-      operacoes.length >= config.limite
-    ) {
-      alert("Limite diário de operações atingido.");
-      return;
-    }
-
-    const mercado = document.getElementById("mercado").value;
-    const odd = document.getElementById("odd").value;
-    const resultado = document.getElementById("resultado").value;
-
-    if (!mercado || !odd) {
-      alert("Preencha todos os campos.");
-      return;
-    }
-
-    operacoes.push({
-      mercado,
-      odd,
-      resultado,
-      data: new Date().toLocaleString()
-    });
-
-    localStorage.setItem("operacoes", JSON.stringify(operacoes));
-    renderizar();
+  const agora = new Date();
+  const inicio = new Date(plano.inicio);
+  const fim = new Date(inicio.getTime() + plano.duracaoDias*24*60*60*1000);
+  if(agora > fim){
+    alert("Plano expirado!");
+    return;
   }
 
-  function renderizar() {
-    const tbody = document.getElementById("lista");
-    tbody.innerHTML = "";
-
-    operacoes.forEach(op => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${op.mercado}</td>
-          <td>${op.odd}</td>
-          <td>${op.resultado}</td>
-          <td>${op.data}</td>
-        </tr>
-      `;
-    });
+  const valor = parseFloat(document.getElementById("valorOperacao").value);
+  if(isNaN(valor) || valor <= 0){
+    alert("Insira um valor válido!");
+    return;
   }
 
-  function resetarOperacoes() {
-    if (confirm("Deseja apagar todas as operações?")) {
-      localStorage.removeItem("operacoes");
-      operacoes = [];
-      renderizar();
-    }
+  if(valor > plano.saldoInvestido){
+    alert("Valor maior que saldo do plano!");
+    return;
   }
 
-  function logout() {
-    localStorage.clear();
-    window.location.href = "login.html";
-  }
+  /* Simulação aleatória: 50% ganha 5%, 50% perde 5% */
+  const ganho = Math.random() < 0.5 ? valor*0.05 : -valor*0.05;
+  plano.saldoInvestido += ganho;
+  plano.saldoInvestido = Math.max(plano.saldoInvestido,0);
 
-  renderizar();
+  localStorage.setItem("planoAtivo", JSON.stringify(plano));
+  document.getElementById("statusOperacao").innerText = `Operação concluída: ${ganho>=0 ? 'Lucro':'Perda'} de R$ ${ganho.toFixed(2)}`;
+  atualizarPainel();
+}
+
+/* 🚪 LOGOUT */
+function logout(){
+  localStorage.removeItem("session");
+  window.location.href = "login.html";
+}
 </script>
 
 </body>
-        </html>
+</html>
