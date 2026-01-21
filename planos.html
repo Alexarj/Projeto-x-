@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+      <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -9,151 +9,101 @@
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #020617);
+      background: linear-gradient(135deg, #020617, #0f172a);
       color: #e5e7eb;
-      line-height: 1.6;
     }
 
     header {
-      background: #020617;
       padding: 30px 20px;
       text-align: center;
+      background: #020617;
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-
-    header p {
-      margin-top: 8px;
-      color: #9ca3af;
-    }
-
-    section {
+    .container {
       max-width: 900px;
       margin: auto;
       padding: 30px 20px;
     }
 
-    .box {
+    .plano {
       background: #020617;
-      padding: 24px;
-      border-radius: 10px;
-      margin-bottom: 24px;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
       box-shadow: 0 0 15px rgba(0,0,0,.4);
     }
 
-    h2 {
-      color: #38bdf8;
+    .plano h2 {
       margin-top: 0;
+      color: #60a5fa;
     }
 
-    h3 {
-      color: #22c55e;
-      margin-bottom: 10px;
-    }
-
-    ul {
+    .plano ul {
       padding-left: 20px;
     }
 
-    .alert {
-      background: #111827;
-      border-left: 4px solid #f97316;
-      padding: 15px;
+    .plano button {
       margin-top: 15px;
-      font-size: 14px;
+      padding: 12px 24px;
+      background: #2563eb;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
     }
 
-    footer {
-      background: #020617;
-      text-align: center;
-      padding: 16px;
-      font-size: 14px;
-      color: #9ca3af;
-    }
-
-    footer a {
-      color: #38bdf8;
-      text-decoration: none;
-      margin: 0 8px;
+    .plano button:hover {
+      background: #1d4ed8;
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>Planos – Projeto X</h1>
-  <p>Trading esportivo em Exchange com leitura de mercado e gestão de risco</p>
+  <h1>Planos do Projeto X</h1>
+  <p>Escolha o plano ideal para seu perfil</p>
 </header>
 
-<section>
+<div class="container">
 
-  <div class="box">
-    <h2>Plano A — Seguidor de Sinais</h2>
-    <h3>Nível 1</h3>
-
+  <!-- PLANO B -->
+  <div class="plano">
+    <h2>Plano B – Gestão de Saldo</h2>
     <ul>
-      <li>Recebimento de sinais para operar na própria conta</li>
-      <li>Mercados de Exchange (ex: Betfair)</li>
-      <li>Foco principal em futebol</li>
-      <li>1 a 3 sinais por dia (quando houver oportunidade)</li>
-      <li>Operações manuais</li>
-      <li>Sem martingale (sem gale)</li>
+      <li>Acesso ao painel do usuário</li>
+      <li>Gestão de saldo simulada</li>
+      <li>Controle de tempo do plano</li>
+      <li>Ideal para iniciantes</li>
     </ul>
 
-    <p><strong>Duração:</strong> 10 dias corridos</p>
-    <p><strong>Valor:</strong> R$ 20</p>
-    <p><strong>Limite:</strong> 1 plano ativo por usuário</p>
-
-    <div class="alert">
-      ⚠️ O Projeto X não executa operações na conta do usuário.
-      O usuário decide se segue ou não cada sinal.
-    </div>
+    <button onclick="ativarPlanoB()">Ativar Plano B</button>
   </div>
 
-  <div class="box">
-    <h2>Plano B — Gestão de Saldo</h2>
-    <h3>Nível 2</h3>
+</div>
 
-    <ul>
-      <li>O trader opera diretamente o saldo liberado pelo usuário</li>
-      <li>Usuário escolhe quanto do saldo será disponibilizado</li>
-      <li>Liberdade total de operação durante o plano</li>
-      <li>Gestão de risco definida pelo trader</li>
-      <li>Sem uso de martingale</li>
-      <li>Busca de até 5% por ciclo (não garantido)</li>
-    </ul>
+<script>
+function ativarPlanoB() {
+  const plano = {
+    nome: "Plano B",
+    tipo: "gestao_saldo",
+    inicio: new Date().toISOString(),
+    duracaoDias: 30
+  };
 
-    <p><strong>Duração:</strong> 12h ou 24h</p>
-    <p><strong>Divisão de lucro:</strong> 70% usuário / 30% trader</p>
+  localStorage.setItem("planoAtivo", JSON.stringify(plano));
 
-    <div class="alert">
-      ⚠️ Em caso de prejuízo, nenhuma taxa é cobrada.
-      Existe risco de perda parcial ou total do saldo liberado.
-    </div>
-  </div>
+  alert("Plano B ativado com sucesso!");
 
-  <div class="box">
-    <h2>Regras Gerais</h2>
-    <ul>
-      <li>Apenas 1 plano ativo por usuário</li>
-      <li>Horário limite para ativação: até 08:00</li>
-      <li>Dias sem operações fazem parte da estratégia</li>
-      <li>Não há promessa de lucro</li>
-      <li>Resultados passados não garantem resultados futuros</li>
-    </ul>
-  </div>
-
-</section>
-
-<footer>
-  © 2026 – Projeto X |
-  <a href="index.html">Home</a> |
-  <a href="termos.html">Termos de Uso</a> |
-  <a href="risco.html">Política de Risco</a>
-</footer>
+  // Se não estiver logado, manda para login
+  const session = localStorage.getItem("session");
+  if (!session) {
+    window.location.href = "login.html";
+  } else {
+    window.location.href = "usuario.html";
+  }
+}
+</script>
 
 </body>
-    </html>
+</html>
