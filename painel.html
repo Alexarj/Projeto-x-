@@ -33,7 +33,7 @@
     }
 
     section {
-      max-width: 1000px;
+      max-width: 1100px;
       margin: auto;
       padding: 20px;
     }
@@ -48,6 +48,24 @@
     h2 {
       color: var(--primary);
       margin-top: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #1e293b;
+      text-align: center;
     }
 
     button, select, input {
@@ -76,7 +94,7 @@
     window.location.href = "login.html";
   }
 
-  // 🌗 Tema salvo
+  // 🌗 Tema
   if (localStorage.getItem("tema") === "claro") {
     document.body.classList.add("claro");
   }
@@ -89,28 +107,48 @@
 
 <section>
 
+  <!-- ESTATÍSTICAS -->
   <div class="box">
-    <h2>Informações da Conta</h2>
-    <p><strong>Plano:</strong> Seguidor de Sinais</p>
-    <p><strong>Status:</strong> Ativo</p>
-    <p><strong>Tipo:</strong> Usuário</p>
+    <h2>Estatísticas</h2>
+    <div class="grid">
+      <div>Total operações<br><strong id="totalOps">0</strong></div>
+      <div>WIN<br><strong id="wins">0</strong></div>
+      <div>LOSS<br><strong id="loss">0</strong></div>
+      <div>Win Rate<br><strong id="winrate">0%</strong></div>
+    </div>
   </div>
 
+  <!-- HISTÓRICO -->
+  <div class="box">
+    <h2>Histórico de Operações</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Mercado</th>
+          <th>Odd</th>
+          <th>Resultado</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody id="historico"></tbody>
+    </table>
+  </div>
+
+  <!-- CONFIGURAÇÕES -->
   <div class="box">
     <h2>Configurações</h2>
 
-    <label>Tema do painel</label>
+    <label>Tema</label>
     <select onchange="trocarTema(this.value)">
       <option value="escuro">Escuro</option>
       <option value="claro">Claro</option>
     </select>
 
     <label>Nova senha</label>
-    <input type="password" id="novaSenha" placeholder="Digite nova senha">
+    <input type="password" id="novaSenha">
 
     <button onclick="alterarSenha()">Salvar nova senha</button>
-
-    <button onclick="logout()">Sair da conta</button>
+    <button onclick="logout()">Sair</button>
   </div>
 
 </section>
@@ -118,6 +156,38 @@
 <script>
   document.getElementById("nome").innerText =
     localStorage.getItem("nomeUsuario") || "Usuário";
+
+  const operacoes = JSON.parse(localStorage.getItem("operacoes")) || [];
+  const tbody = document.getElementById("historico");
+
+  let wins = 0;
+  let loss = 0;
+
+  if (operacoes.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4">Nenhuma operação registrada</td></tr>`;
+  } else {
+    operacoes.forEach(op => {
+      if (op.resultado === "WIN") wins++;
+      if (op.resultado === "LOSS") loss++;
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${op.mercado}</td>
+          <td>${op.odd}</td>
+          <td>${op.resultado}</td>
+          <td>${op.data}</td>
+        </tr>
+      `;
+    });
+  }
+
+  const total = operacoes.length;
+  const winrate = total ? ((wins / total) * 100).toFixed(1) : 0;
+
+  document.getElementById("totalOps").innerText = total;
+  document.getElementById("wins").innerText = wins;
+  document.getElementById("loss").innerText = loss;
+  document.getElementById("winrate").innerText = winrate + "%";
 
   function trocarTema(tema) {
     if (tema === "claro") {
@@ -131,13 +201,9 @@
 
   function alterarSenha() {
     const senha = document.getElementById("novaSenha").value;
-    if (!senha) {
-      alert("Digite uma nova senha.");
-      return;
-    }
+    if (!senha) return alert("Digite uma senha.");
     localStorage.setItem("senhaUsuario", senha);
     alert("Senha atualizada (simulada).");
-    document.getElementById("novaSenha").value = "";
   }
 
   function logout() {
@@ -147,4 +213,4 @@
 </script>
 
 </body>
-  </html>
+</html>
