@@ -5,16 +5,6 @@
   <title>Painel do Usuário – Projeto X</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- PROTEÇÃO -->
-  <script>
-    if (
-      localStorage.getItem("logado") !== "true" ||
-      localStorage.getItem("tipoUsuario") !== "user"
-    ) {
-      window.location.href = "login.html";
-    }
-  </script>
-
   <style>
     body {
       margin: 0;
@@ -26,77 +16,148 @@
     header {
       background: #020617;
       padding: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      text-align: center;
     }
 
     section {
       max-width: 1000px;
       margin: auto;
-      padding: 24px;
+      padding: 20px;
     }
 
-    .card {
+    .box {
       background: #020617;
       padding: 20px;
       border-radius: 8px;
       margin-bottom: 20px;
     }
 
+    h2 {
+      color: #38bdf8;
+      margin-top: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #1e293b;
+      padding: 8px;
+      text-align: center;
+    }
+
     button {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 6px;
       background: #38bdf8;
       color: #020617;
       font-weight: bold;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
       cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
     }
 
-    button:hover {
-      background: #0ea5e9;
+    .info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
     }
   </style>
 </head>
+
 <body>
 
-  <header>
-    <h2>Painel do Usuário</h2>
-    <button onclick="logout()">Sair</button>
-  </header>
+<script>
+  // 🔐 PROTEÇÃO
+  if (localStorage.getItem("logado") !== "true" ||
+      localStorage.getItem("tipoUsuario") !== "user") {
+    alert("Acesso restrito ao usuário.");
+    window.location.href = "login.html";
+  }
+</script>
 
-  <section>
-    <div class="card">
-      <h3>Saldo</h3>
-      <p>Saldo disponível: <strong>R$ 50,00</strong></p>
+<header>
+  <h1>Painel do Usuário</h1>
+  <p>Bem-vindo, <span id="nome"></span></p>
+</header>
+
+<section>
+
+  <div class="box info">
+    <div>
+      <h2>Saldo</h2>
+      <p>R$ 50,00</p>
     </div>
 
-    <div class="card">
-      <h3>Plano Ativo</h3>
-      <p>Seguidor de Sinais – 10 dias</p>
-      <p>Status: <strong>Ativo</strong></p>
+    <div>
+      <h2>Plano</h2>
+      <p>Seguidor de Sinais</p>
     </div>
 
-    <div class="card">
-      <h3>Histórico de Operações</h3>
-      <p>Em breve…</p>
+    <div>
+      <h2>Status</h2>
+      <p>Ativo</p>
     </div>
+  </div>
 
-    <div class="card">
-      <h3>Configurações</h3>
-      <button onclick="alert('Configurações em desenvolvimento')">
-        Abrir Configurações
-      </button>
-    </div>
-  </section>
+  <div class="box">
+    <h2>Histórico de Operações</h2>
 
-  <script>
-    function logout() {
-      localStorage.clear();
-      window.location.href = "login.html";
-    }
-  </script>
+    <table>
+      <thead>
+        <tr>
+          <th>Mercado</th>
+          <th>Odd</th>
+          <th>Resultado</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody id="historico"></tbody>
+    </table>
+  </div>
+
+  <div class="box">
+    <h2>Configurações</h2>
+    <button onclick="logout()">Sair da Conta</button>
+  </div>
+
+</section>
+
+<script>
+  document.getElementById("nome").innerText =
+    localStorage.getItem("nomeUsuario") || "Usuário";
+
+  const operacoes = JSON.parse(localStorage.getItem("operacoes")) || [];
+  const tbody = document.getElementById("historico");
+
+  if (operacoes.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4">Nenhuma operação registrada</td>
+      </tr>
+    `;
+  } else {
+    operacoes.forEach(op => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${op.mercado}</td>
+          <td>${op.odd}</td>
+          <td>${op.resultado}</td>
+          <td>${op.data}</td>
+        </tr>
+      `;
+    });
+  }
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
+  }
+</script>
 
 </body>
-</html>
+  </html>
