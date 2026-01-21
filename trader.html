@@ -38,18 +38,8 @@
       color: #60a5fa;
     }
 
-    .status {
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    .ativo {
-      color: #22c55e;
-    }
-
-    .expirado {
-      color: #ef4444;
-    }
+    .ativo { color: #22c55e; }
+    .expirado { color: #ef4444; }
 
     button {
       padding: 12px 24px;
@@ -62,10 +52,7 @@
       margin-top: 10px;
       margin-right: 8px;
     }
-
-    button:hover {
-      background: #1d4ed8;
-    }
+    button:hover { background: #1d4ed8; }
 
     input {
       width: 100%;
@@ -76,6 +63,8 @@
       background: #0f172a;
       color: #fff;
     }
+
+    ul { padding-left: 18px; }
   </style>
 </head>
 <body>
@@ -102,6 +91,12 @@
     <p id="statusOperacao"></p>
   </div>
 
+  <!-- HISTÓRICO DE OPERAÇÕES -->
+  <div class="card">
+    <h2>Histórico de Operações</h2>
+    <ul id="historicoOperacoes"></ul>
+  </div>
+
   <div class="card">
     <button onclick="logout()">Sair</button>
   </div>
@@ -119,21 +114,34 @@ if(!session || session.tipo !== "trader"){
 let plano = JSON.parse(localStorage.getItem("planoAtivo")) || null;
 
 function atualizarPainel(){
-  if(!plano){
-    document.getElementById("saldoPlano").innerText = "Nenhum plano ativo";
-    document.getElementById("diasRestantes").innerText = "";
-    return;
-  }
   const agora = new Date();
-  const inicio = new Date(plano.inicio);
-  const fim = new Date(inicio.getTime() + plano.duracaoDias*24*60*60*1000);
-  const diasRestantes = Math.ceil((fim - agora)/(1000*60*60*24));
-  
-  document.getElementById("diasRestantes").innerText = `Dias restantes: ${diasRestantes > 0 ? diasRestantes : 0}`;
-  document.getElementById("saldoPlano").innerText = `R$ ${plano.saldoInvestido.toFixed(2)}`;
+  const inicio = plano ? new Date(plano.inicio) : null;
+  const fim = inicio ? new Date(inicio.getTime() + plano.duracaoDias*24*60*60*1000) : null;
+  const diasRestantes = plano ? Math.ceil((fim - agora)/(1000*60*60*24)) : 0;
+
+  document.getElementById("diasRestantes").innerText = plano ? `Dias restantes: ${diasRestantes > 0 ? diasRestantes : 0}` : '';
+  document.getElementById("saldoPlano").innerText = plano ? `R$ ${plano.saldoInvestido.toFixed(2)}` : "Nenhum plano ativo";
+
+  atualizarHistorico();
 }
 
-atualizarPainel();
+/* 🔹 HISTÓRICO DE OPERAÇÕES */
+function atualizarHistorico(){
+  const historico = JSON.parse(localStorage.getItem("historicoOperacoes")) || [];
+  const ul = document.getElementById("historicoOperacoes");
+  ul.innerHTML = "";
+
+  if(historico.length === 0){
+    ul.innerHTML = "<li>Nenhuma operação realizada</li>";
+    return;
+  }
+
+  historico.forEach(op => {
+    const li = document.createElement("li");
+    li.textContent = `${new Date(op.data).toLocaleString()} - ${op.tipo} de R$ ${op.valor.toFixed(2)} → ${op.resultado >=0 ? 'Lucro':'Perda'}: R$ ${op.resultado.toFixed(2)}`;
+    ul.appendChild(li);
+  });
+}
 
 /* 🔹 SIMULAÇÃO DE OPERAÇÃO */
 function realizarOperacao(){
@@ -165,8 +173,18 @@ function realizarOperacao(){
   const ganho = Math.random() < 0.5 ? valor*0.05 : -valor*0.05;
   plano.saldoInvestido += ganho;
   plano.saldoInvestido = Math.max(plano.saldoInvestido,0);
-
   localStorage.setItem("planoAtivo", JSON.stringify(plano));
+
+  /* Registro no histórico */
+  let historico = JSON.parse(localStorage.getItem("historicoOperacoes")) || [];
+  historico.push({
+    data: new Date().toISOString(),
+    tipo: "Plano B",
+    valor: valor,
+    resultado: ganho
+  });
+  localStorage.setItem("historicoOperacoes", JSON.stringify(historico));
+
   document.getElementById("statusOperacao").innerText = `Operação concluída: ${ganho>=0 ? 'Lucro':'Perda'} de R$ ${ganho.toFixed(2)}`;
   atualizarPainel();
 }
@@ -176,6 +194,9 @@ function logout(){
   localStorage.removeItem("session");
   window.location.href = "login.html";
 }
+
+/* Inicializa painel */
+atualizarPainel();
 </script>
 
 </body>
