@@ -37,15 +37,36 @@
       padding: 24px;
     }
 
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
     .card {
       background: #020617;
       padding: 20px;
       border-radius: 8px;
-      margin-bottom: 20px;
+    }
+
+    h3 {
+      margin-top: 0;
+      color: #38bdf8;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 6px;
+      border: 1px solid #1e293b;
+      background: #020617;
+      color: #e5e7eb;
     }
 
     button {
-      padding: 10px 14px;
+      margin-top: 12px;
+      padding: 10px;
       border: none;
       border-radius: 6px;
       background: #22c55e;
@@ -57,49 +78,142 @@
     button:hover {
       background: #16a34a;
     }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #1e293b;
+      text-align: center;
+    }
+
+    .danger {
+      background: #ef4444;
+      color: #020617;
+    }
+
+    .secondary {
+      background: #334155;
+      color: #e5e7eb;
+      margin-left: 6px;
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h2>Painel do Trader</h2>
-    <div>
-      <button onclick="voltarUsuario()">Painel Usuário</button>
-      <button onclick="logout()">Sair</button>
-    </div>
-  </header>
+<header>
+  <h2>Painel do Trader</h2>
+  <div>
+    <button class="secondary" onclick="voltarUsuario()">Painel Usuário</button>
+    <button class="danger" onclick="logout()">Sair</button>
+  </div>
+</header>
 
-  <section>
-    <div class="card">
-      <h3>Planos Ativos</h3>
-      <p>Usuários com plano ativo: <strong>3</strong></p>
-    </div>
+<section>
 
+  <div class="grid">
     <div class="card">
-      <h3>Registrar Operação</h3>
-      <button onclick="registrarOperacao()">Registrar Trade</button>
+      <h3>Capital sob Gestão</h3>
+      <p>Total: <strong>R$ 150,00</strong></p>
+      <p>Planos ativos: <strong>3</strong></p>
     </div>
 
     <div class="card">
-      <h3>Histórico do Trader</h3>
-      <p>Em breve…</p>
+      <h3>Gestão de Risco</h3>
+      <p>Limite diário: <strong>5%</strong></p>
+      <p>Gale: <strong>Não permitido</strong></p>
     </div>
-  </section>
 
-  <script>
-    function logout() {
-      localStorage.clear();
-      window.location.href = "login.html";
+    <div class="card">
+      <h3>Disciplina</h3>
+      <p>Trades hoje: <strong id="tradesHoje">0</strong></p>
+      <p>Status: <strong id="statusDia">Livre</strong></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Registrar Trade</h3>
+
+    <label>Mercado</label>
+    <select id="mercado">
+      <option>Lay</option>
+      <option>Back</option>
+    </select>
+
+    <label>Resultado</label>
+    <select id="resultado">
+      <option value="win">Win</option>
+      <option value="loss">Loss</option>
+    </select>
+
+    <label>Valor (%)</label>
+    <input type="number" id="valor" placeholder="Ex: 3">
+
+    <button onclick="registrarTrade()">Registrar</button>
+  </div>
+
+  <div class="card">
+    <h3>Histórico do Dia</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Mercado</th>
+          <th>Resultado</th>
+          <th>%</th>
+        </tr>
+      </thead>
+      <tbody id="historico"></tbody>
+    </table>
+  </div>
+
+</section>
+
+<script>
+  let tradesHoje = 0;
+
+  function registrarTrade() {
+    const mercado = document.getElementById("mercado").value;
+    const resultado = document.getElementById("resultado").value;
+    const valor = document.getElementById("valor").value;
+
+    if (!valor) {
+      alert("Informe o percentual do trade.");
+      return;
     }
 
-    function voltarUsuario() {
-      window.location.href = "painel.html";
+    tradesHoje++;
+    document.getElementById("tradesHoje").innerText = tradesHoje;
+
+    if (tradesHoje >= 3) {
+      document.getElementById("statusDia").innerText = "Limite atingido";
     }
 
-    function registrarOperacao() {
-      alert("Operação registrada com sucesso!");
-    }
-  </script>
+    const linha = `
+      <tr>
+        <td>${mercado}</td>
+        <td>${resultado.toUpperCase()}</td>
+        <td>${valor}%</td>
+      </tr>
+    `;
+
+    document.getElementById("historico").innerHTML += linha;
+    document.getElementById("valor").value = "";
+  }
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
+  }
+
+  function voltarUsuario() {
+    window.location.href = "painel.html";
+  }
+</script>
 
 </body>
-</html>
+        </html>
