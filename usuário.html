@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Projeto X – Painel do Usuário</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+
+    header {
+      background: #020617;
+      padding: 20px;
+      text-align: center;
+    }
+
+    section {
+      max-width: 900px;
+      margin: auto;
+      padding: 24px;
+    }
+
+    .box {
+      background: #020617;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      color: #38bdf8;
+      margin-top: 0;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #2563eb;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:disabled {
+      background: #374151;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Painel do Usuário</h1>
+</header>
+
+<section>
+
+  <div class="box" id="planoAtivoBox">
+    <!-- Conteúdo dinâmico -->
+  </div>
+
+  <div class="box">
+    <h2>Planos Disponíveis</h2>
+
+    <p><strong>Plano A – Seguidor de Sinais</strong></p>
+    <p>R$ 20 • Duração: 10 dias</p>
+    <button onclick="ativarPlano('Plano A', 10)">Ativar Plano</button>
+  </div>
+
+</section>
+
+<script>
+  const planoAtivoBox = document.getElementById("planoAtivoBox");
+  const planoAtivo = JSON.parse(localStorage.getItem("planoAtivo"));
+
+  function renderPlanoAtivo() {
+    if (planoAtivo) {
+      planoAtivoBox.innerHTML = `
+        <h2>Plano Ativo</h2>
+        <p><strong>${planoAtivo.nome}</strong></p>
+        <p>Duração: ${planoAtivo.dias} dias</p>
+        <p>Status: Ativo</p>
+        <button disabled>Plano em andamento</button>
+      `;
+      document.querySelectorAll("button").forEach(btn => {
+        if (btn.innerText === "Ativar Plano") btn.disabled = true;
+      });
+    } else {
+      planoAtivoBox.innerHTML = `
+        <h2>Nenhum plano ativo</h2>
+        <p>Você ainda não ativou um plano.</p>
+      `;
+    }
+  }
+
+  function ativarPlano(nome, dias) {
+    if (planoAtivo) {
+      alert("Você já possui um plano ativo.");
+      return;
+    }
+
+    const novoPlano = {
+      nome,
+      dias,
+      inicio: new Date().toISOString()
+    };
+
+    localStorage.setItem("planoAtivo", JSON.stringify(novoPlano));
+    location.reload();
+  }
+
+  renderPlanoAtivo();
+</script>
+
+</body>
+  </html>
