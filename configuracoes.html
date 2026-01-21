@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Configurações – Projeto X</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- PROTEÇÃO -->
+  <script>
+    if (
+      localStorage.getItem("logado") !== "true" ||
+      localStorage.getItem("tipoUsuario") !== "user"
+    ) {
+      window.location.href = "login.html";
+    }
+  </script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+
+    header {
+      background: #020617;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    section {
+      max-width: 900px;
+      margin: auto;
+      padding: 24px;
+    }
+
+    .card {
+      background: #020617;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-size: 14px;
+      color: #9ca3af;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 6px;
+      border: 1px solid #1e293b;
+      background: #020617;
+      color: #e5e7eb;
+    }
+
+    button {
+      margin-top: 16px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #38bdf8;
+      color: #020617;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0ea5e9;
+    }
+
+    .secondary {
+      background: #334155;
+      color: #e5e7eb;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>Configurações</h2>
+  <button class="secondary" onclick="voltar()">Voltar</button>
+</header>
+
+<section>
+
+  <!-- DADOS DA CONTA -->
+  <div class="card">
+    <h3>Dados da Conta</h3>
+
+    <label>Email</label>
+    <input type="email" id="email" disabled>
+
+    <label>Tipo de Conta</label>
+    <input type="text" value="Usuário" disabled>
+  </div>
+
+  <!-- SEGURANÇA -->
+  <div class="card">
+    <h3>Segurança</h3>
+
+    <label>Nova Senha</label>
+    <input type="password" id="novaSenha" placeholder="Digite nova senha">
+
+    <button onclick="alterarSenha()">Salvar Nova Senha</button>
+  </div>
+
+  <!-- PREFERÊNCIAS -->
+  <div class="card">
+    <h3>Preferências</h3>
+
+    <label>Receber alertas de sinais</label>
+    <select id="alertas">
+      <option value="sim">Sim</option>
+      <option value="nao">Não</option>
+    </select>
+
+    <label>Tema</label>
+    <select id="tema">
+      <option value="dark">Escuro</option>
+      <option value="light">Claro</option>
+    </select>
+
+    <button onclick="salvarPreferencias()">Salvar Preferências</button>
+  </div>
+
+  <!-- TERMOS -->
+  <div class="card">
+    <h3>Termos e Risco</h3>
+    <button onclick="window.location.href='termos.html'">Termos de Uso</button>
+    <button class="secondary" onclick="window.location.href='risco.html'">Política de Risco</button>
+  </div>
+
+</section>
+
+<script>
+  // Carregar dados
+  document.getElementById("email").value =
+    localStorage.getItem("email") || "não informado";
+
+  document.getElementById("alertas").value =
+    localStorage.getItem("alertas") || "sim";
+
+  document.getElementById("tema").value =
+    localStorage.getItem("tema") || "dark";
+
+  function alterarSenha() {
+    const senha = document.getElementById("novaSenha").value;
+
+    if (senha.length < 4) {
+      alert("Senha muito curta.");
+      return;
+    }
+
+    localStorage.setItem("senha", senha);
+    alert("Senha atualizada com sucesso!");
+    document.getElementById("novaSenha").value = "";
+  }
+
+  function salvarPreferencias() {
+    const alertas = document.getElementById("alertas").value;
+    const tema = document.getElementById("tema").value;
+
+    localStorage.setItem("alertas", alertas);
+    localStorage.setItem("tema", tema);
+
+    alert("Preferências salvas!");
+  }
+
+  function voltar() {
+    window.location.href = "painel.html";
+  }
+</script>
+
+</body>
+</html>
