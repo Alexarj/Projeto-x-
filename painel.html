@@ -6,15 +6,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+    :root {
+      --bg: #0f172a;
+      --box: #020617;
+      --text: #e5e7eb;
+      --primary: #38bdf8;
+    }
+
+    body.claro {
+      --bg: #f1f5f9;
+      --box: #ffffff;
+      --text: #020617;
+    }
+
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
+      background: var(--bg);
+      color: var(--text);
     }
 
     header {
-      background: #020617;
+      background: var(--box);
       padding: 20px;
       text-align: center;
     }
@@ -26,45 +39,30 @@
     }
 
     .box {
-      background: #020617;
+      background: var(--box);
       padding: 20px;
       border-radius: 8px;
       margin-bottom: 20px;
     }
 
     h2 {
-      color: #38bdf8;
+      color: var(--primary);
       margin-top: 0;
     }
 
-    table {
+    button, select, input {
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      border-bottom: 1px solid #1e293b;
-      padding: 8px;
-      text-align: center;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 5px;
+      border: none;
     }
 
     button {
-      background: #38bdf8;
+      background: var(--primary);
       color: #020617;
       font-weight: bold;
-      border: none;
-      padding: 10px;
-      border-radius: 5px;
       cursor: pointer;
-      width: 100%;
-      margin-top: 10px;
-    }
-
-    .info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
     }
   </style>
 </head>
@@ -72,11 +70,15 @@
 <body>
 
 <script>
-  // 🔐 PROTEÇÃO
+  // 🔐 Proteção
   if (localStorage.getItem("logado") !== "true" ||
       localStorage.getItem("tipoUsuario") !== "user") {
-    alert("Acesso restrito ao usuário.");
     window.location.href = "login.html";
+  }
+
+  // 🌗 Tema salvo
+  if (localStorage.getItem("tema") === "claro") {
+    document.body.classList.add("claro");
   }
 </script>
 
@@ -87,42 +89,28 @@
 
 <section>
 
-  <div class="box info">
-    <div>
-      <h2>Saldo</h2>
-      <p>R$ 50,00</p>
-    </div>
-
-    <div>
-      <h2>Plano</h2>
-      <p>Seguidor de Sinais</p>
-    </div>
-
-    <div>
-      <h2>Status</h2>
-      <p>Ativo</p>
-    </div>
-  </div>
-
   <div class="box">
-    <h2>Histórico de Operações</h2>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Mercado</th>
-          <th>Odd</th>
-          <th>Resultado</th>
-          <th>Data</th>
-        </tr>
-      </thead>
-      <tbody id="historico"></tbody>
-    </table>
+    <h2>Informações da Conta</h2>
+    <p><strong>Plano:</strong> Seguidor de Sinais</p>
+    <p><strong>Status:</strong> Ativo</p>
+    <p><strong>Tipo:</strong> Usuário</p>
   </div>
 
   <div class="box">
     <h2>Configurações</h2>
-    <button onclick="logout()">Sair da Conta</button>
+
+    <label>Tema do painel</label>
+    <select onchange="trocarTema(this.value)">
+      <option value="escuro">Escuro</option>
+      <option value="claro">Claro</option>
+    </select>
+
+    <label>Nova senha</label>
+    <input type="password" id="novaSenha" placeholder="Digite nova senha">
+
+    <button onclick="alterarSenha()">Salvar nova senha</button>
+
+    <button onclick="logout()">Sair da conta</button>
   </div>
 
 </section>
@@ -131,26 +119,25 @@
   document.getElementById("nome").innerText =
     localStorage.getItem("nomeUsuario") || "Usuário";
 
-  const operacoes = JSON.parse(localStorage.getItem("operacoes")) || [];
-  const tbody = document.getElementById("historico");
+  function trocarTema(tema) {
+    if (tema === "claro") {
+      document.body.classList.add("claro");
+      localStorage.setItem("tema", "claro");
+    } else {
+      document.body.classList.remove("claro");
+      localStorage.setItem("tema", "escuro");
+    }
+  }
 
-  if (operacoes.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="4">Nenhuma operação registrada</td>
-      </tr>
-    `;
-  } else {
-    operacoes.forEach(op => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${op.mercado}</td>
-          <td>${op.odd}</td>
-          <td>${op.resultado}</td>
-          <td>${op.data}</td>
-        </tr>
-      `;
-    });
+  function alterarSenha() {
+    const senha = document.getElementById("novaSenha").value;
+    if (!senha) {
+      alert("Digite uma nova senha.");
+      return;
+    }
+    localStorage.setItem("senhaUsuario", senha);
+    alert("Senha atualizada (simulada).");
+    document.getElementById("novaSenha").value = "";
   }
 
   function logout() {
