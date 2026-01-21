@@ -22,12 +22,14 @@ button:hover{background:#1d4ed8;}
 </header>
 
 <div class="container">
+  <!-- Carteira -->
   <div class="card">
     <h2>Carteira</h2>
     <p>Saldo Livre: R$ <span id="saldoLivre">100,00</span></p>
     <p>Saldo do Plano B: R$ <span id="saldoPlano">0,00</span></p>
   </div>
 
+  <!-- Plano B -->
   <div class="card plano-status">
     <h2>Plano B – Gestão de Saldo</h2>
     <p>Status: <span id="statusPlano">Inativo</span></p>
@@ -37,6 +39,7 @@ button:hover{background:#1d4ed8;}
     <button onclick="ativarPlano()">Ativar Plano B (R$50)</button>
   </div>
 
+  <!-- Histórico -->
   <div class="card">
     <h2>Histórico de Operações</h2>
     <div id="historico">
@@ -44,17 +47,19 @@ button:hover{background:#1d4ed8;}
     </div>
   </div>
 
+  <!-- Logout -->
   <button onclick="logout()">Sair</button>
 </div>
 
 <script>
-// Simulação de saldo
+// Simulação de saldo e histórico
 let saldoLivre = parseFloat(localStorage.getItem("saldoLivre")) || 100;
 let saldoPlano = parseFloat(localStorage.getItem("saldoPlano")) || 0;
 let planoAtivo = localStorage.getItem("planoAtivo") === "true" || false;
 let tempoInicial = parseInt(localStorage.getItem("tempoFimPlano")) || null;
 let historico = JSON.parse(localStorage.getItem("historico")) || [];
 
+// Atualiza dashboard
 function atualizarDashboard(){
   document.getElementById("saldoLivre").innerText = saldoLivre.toFixed(2);
   document.getElementById("saldoPlano").innerText = saldoPlano.toFixed(2);
@@ -72,6 +77,8 @@ function atualizarDashboard(){
       saldoPlano = 0;
       localStorage.setItem("saldoLivre", saldoLivre);
       localStorage.setItem("saldoPlano", saldoPlano);
+      historico.push(`Plano B encerrado automaticamente em ${new Date().toLocaleString()}`);
+      localStorage.setItem("historico", JSON.stringify(historico));
     } else {
       let dias = Math.floor(diff / (1000*60*60*24));
       let horas = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
@@ -93,6 +100,7 @@ function atualizarDashboard(){
   }
 }
 
+// Ativar plano
 function ativarPlano(){
   if(saldoLivre < 50){ alert("Saldo insuficiente para ativar o plano."); return; }
   saldoLivre -= 50;
@@ -108,6 +116,7 @@ function ativarPlano(){
   atualizarDashboard();
 }
 
+// Encerrar plano
 function encerrarPlano(){
   if(!planoAtivo){ alert("Plano não está ativo."); return; }
   planoAtivo = false;
@@ -121,14 +130,16 @@ function encerrarPlano(){
   atualizarDashboard();
 }
 
+// Logout
 function logout(){
   localStorage.removeItem("session");
   window.location.href = "login.html";
 }
 
+// Atualiza dashboard a cada segundo
 atualizarDashboard();
 setInterval(atualizarDashboard, 1000);
 </script>
 
 </body>
-</html>
+  </html>
