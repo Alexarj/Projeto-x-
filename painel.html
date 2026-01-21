@@ -1,54 +1,143 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Painel do Usuário – Projeto X</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Painel do Usuário – Projeto X</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #0f172a;
-      color: #e5e7eb;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+}
 
-    header {
-      background-color: #020617;
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #1e293b;
-    }
+/* HEADER */
+header {
+  background: #020617;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    header h1 {
-      font-size: 20px;
-      margin: 0;
-    }
+header h1 {
+  margin: 0;
+  font-size: 22px;
+  color: #38bdf8;
+}
 
-    header button {
-      background: none;
-      border: none;
-      color: #f87171;
-      cursor: pointer;
-      font-size: 14px;
-    }
+.btn-sair {
+  background: #ef4444;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
-    .container {
-      display: flex;
-      min-height: calc(100vh - 60px);
-    }
+/* MENU */
+.menu {
+  display: flex;
+  gap: 10px;
+  background: #020617;
+  padding: 10px 20px;
+}
 
-    nav {
-      width: 220px;
-      background-color: #020617;
-      border-right: 1px solid #1e293b;
-      padding: 20px 0;
-    }
+.menu button {
+  background: #1e293b;
+  color: #e5e7eb;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
-    nav button {
-      width: 100%;
-      padding: 12px 20px;
-      background: none;
-      border: none
+.menu button:hover {
+  background: #38bdf8;
+  color: #020617;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* CARDS */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: #020617;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.card h2 {
+  margin-top: 0;
+  color: #38bdf8;
+}
+
+/* TABELA */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th, table td {
+  padding: 10px;
+  border-bottom: 1px solid #1e293b;
+  text-align: left;
+}
+
+table th {
+  color: #38bdf8;
+}
+
+/* INPUT */
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  margin-top: 5px;
+}
+
+/* BOTÃO CONFIG */
+.btn-config {
+  background: #38bdf8;
+  border: none;
+  padding: 12px;
+  color: #020617;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Painel do Usuário</h1>
+  <button class="btn-sair" onclick="sair()">Sair</button>
+</header>
+
+<nav class="menu">
+  <button onclick="mostrar('dashboard')">Dashboard</button>
+  <button onclick="mostrar('historico')">Histórico</button>
+  <button onclick="mostrar('config')">Configurações</button>
+</nav>
+
+<div class="container">
+
+  <!-- DASHBOARD -->
+  <section id="dashboard">
+    <div class="
