@@ -6,38 +6,121 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script type="module" src="supabase.js"></script>
 <style>
-body{font-family:Arial,sans-serif;background:#0f172a;color:#e5e7eb;padding:20px}
-button{padding:10px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-top:10px}
-button:hover{background:#1d4ed8}
+body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 20px;
+}
+button {
+    padding: 10px 20px;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+button:hover {
+    background: #1d4ed8;
+}
+#planos p {
+    margin: 8px 0;
+}
 </style>
 </head>
 <body>
+
 <h2>Painel do Usuário</h2>
 <div id="saldo"></div>
 <div id="planos"></div>
-<button onclick="location.href='planos.html'">Ver Planos</button>
+<button id="ativarPlano">Ativar Plano B (R$20)</button>
 
 <script type="module">
 import { supabase } from './supabase.js'
 
-const session = JSON.parse(localStorage.getItem('session'))
-document.getElementById('saldo').innerText = 'Saldo livre: R$ ' + session.saldoLivre
+// Recuperar sessão do usuário do localStorage
+let session = JSON.parse(localStorage.getItem('session'))
 
-async function carregarPlanos(){
-  const { data, error } = await supabase
-    .from('planos')
-    .select('*')
-    .eq('user_id', session.id)
-  if(data){
-    let html = '<h3>Seus Planos:</h3>'
-    data.forEach(p => {
-      html += `<p>${p.nome} | Status: ${p.status} | Saldo: R$ ${p.saldo}</p>`
-    })
-    document.getElementById('planos').innerHTML = html
-  }
+if(!session){
+    alert('Usuário não logado')
+    window.location.href = 'index.html'
 }
 
+// Mostrar saldo livre
+function atualizarSaldo(){
+    document.getElementById('saldo').innerText = 'Saldo livre: R$ ' + session.saldoLivre
+}
+atualizarSaldo()
+
+// Carregar planos do usuário
+async function carregarPlanos(){
+    const { data, error } = await supabase
+        .from('planos')
+        .select('*')
+        .eq('user_id', session.id)
+
+    if(error){
+        console.error(error)
+        alert('Erro ao carregar planos')
+        return
+    }
+
+    let html = '<h3>Seus Planos:</h3>'
+    data.forEach(p => {
+        let tempoRestante = p.fim ? Math.max(0, new Date(p.fim) - new Date()) : 0
+        let diasRestantes = Math.ceil(tempoRestante / (1000*60*60*24))
+        html += `<p>${p.nome} | Status: ${p.status} | Saldo: R$ ${p.saldo} | Dias restantes: ${diasRestantes}</p>`
+    })
+    document.getElementById('planos').innerHTML = html
+}
 carregarPlanos()
+
+// Ativar Plano B
+document.getElementById('ativarPlano').addEventListener('click', async () => {
+    if(session.saldoLivre < 20){
+        alert('Saldo insuficiente')
+        return
+    }
+
+    // Atualizar Plano B no Supabase
+    const { data: plano, error } = await supabase
+        .from('planos')
+        .update({
+            saldo: 20,
+            status: 'Ativo',
+            inicio: new Date(),
+            fim: new Date(new Date().getTime() + 7*24*60*60*1000) // 7 dias
+        })
+        .eq('user_id', session.id)
+        .eq('nome', 'Plano B')
+
+    if(error){
+        console.error(error)
+        alert('Erro ao ativar plano')
+        return
+    }
+
+    // Atualizar saldo livre do usuário
+    const { data: user, error: userError } = await supabase
+        .from('users')
+        .update({ saldoLivre: session.saldoLivre - 20 })
+        .eq('id', session.id)
+
+    if(userError){
+        console.error(userError)
+        alert('Erro ao atualizar saldo')
+        return
+    }
+
+    // Atualizar sessão local e front-end
+    session.saldoLivre -= 20
+    localStorage.setItem('session', JSON.stringify(session))
+    alert('Plano B ativado com sucesso!')
+    atualizarSaldo()
+    carregarPlanos()
+})
 </script>
+
 </body>
 </html>
