@@ -2,121 +2,35 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Projeto X – Painel do Trader</title>
+<title>Painel do Trader</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="supabase.js"></script>
 <style>
-body{margin:0; font-family:Arial,sans-serif; background:#0f172a; color:#e5e7eb;}
-header{background:#020617; padding:20px; text-align:center;}
-h1{color:#38bdf8;}
-.container{max-width:900px; margin:20px auto; padding:20px;}
-.card{background:#020617; padding:20px; border-radius:10px; margin-bottom:20px;}
-button{padding:10px 20px; border:none; border-radius:6px; background:#2563eb; color:#fff; cursor:pointer; margin:5px 0;}
-button:hover{background:#1d4ed8;}
-#historico{max-height:250px; overflow-y:auto; margin-top:10px;}
-input{padding:8px; border-radius:5px; border:none; background:#0f172a; color:#fff; width:80px; margin-right:10px;}
+body{font-family:Arial,sans-serif;background:#0f172a;color:#e5e7eb;padding:20px}
 </style>
 </head>
 <body>
+<h2>Painel do Trader</h2>
+<div id="operacoes"></div>
 
-<header>
-  <h1>Painel do Trader</h1>
-</header>
+<script type="module">
+import { supabase } from './supabase.js'
 
-<div class="container">
-  <!-- Saldo do Plano -->
-  <div class="card">
-    <h2>Saldo do Plano B</h2>
-    <p>Saldo disponível para operações: R$ <span id="saldoPlano">0,00</span></p>
-    <p>Status do Plano: <span id="statusPlano">Inativo</span></p>
-  </div>
+const session = JSON.parse(localStorage.getItem('session'))
 
-  <!-- Operações -->
-  <div class="card">
-    <h2>Nova Operação</h2>
-    <input type="number" id="valorOperacao" placeholder="R$" min="1">
-    <button onclick="realizarOperacao()">Realizar Operação</button>
-  </div>
-
-  <!-- Histórico -->
-  <div class="card">
-    <h2>Histórico de Operações</h2>
-    <div id="historico">
-      <p>Nenhuma operação realizada ainda.</p>
-    </div>
-  </div>
-
-  <!-- Logout -->
-  <button onclick="logout()">Sair</button>
-</div>
-
-<script>
-// Saldo e histórico compartilhados com usuário
-let saldoPlano = parseFloat(localStorage.getItem("saldoPlano")) || 0;
-let planoAtivo = localStorage.getItem("planoAtivo") === "true" || false;
-let tempoInicial = parseInt(localStorage.getItem("tempoFimPlano")) || null;
-let historico = JSON.parse(localStorage.getItem("historico")) || [];
-
-// Atualiza painel
-function atualizarDashboard(){
-  document.getElementById("saldoPlano").innerText = saldoPlano.toFixed(2);
-
-  // Status do plano
-  if(planoAtivo && tempoInicial){
-    const agora = new Date().getTime();
-    let diff = tempoInicial - agora;
-    if(diff <= 0){
-      document.getElementById("statusPlano").innerText = "Encerrado";
-      planoAtivo = false;
-      saldoPlano = 0;
-      localStorage.setItem("saldoPlano", saldoPlano);
-      localStorage.setItem("planoAtivo", planoAtivo);
-      historico.push(`Plano B encerrado automaticamente em ${new Date().toLocaleString()}`);
-      localStorage.setItem("historico", JSON.stringify(historico));
-    } else {
-      let dias = Math.floor(diff / (1000*60*60*24));
-      document.getElementById("statusPlano").innerText = (dias<=1) ? "Expirando" : "Ativo";
-    }
-  } else {
-    document.getElementById("statusPlano").innerText = "Inativo";
-  }
-
-  // Atualiza histórico
-  const histDiv = document.getElementById("historico");
-  if(historico.length === 0){
-    histDiv.innerHTML = "<p>Nenhuma operação realizada ainda.</p>";
-  } else {
-    histDiv.innerHTML = historico.map(op=>`<p>${op}</p>`).join("");
-  }
+async function carregarOperacoes(){
+  const { data } = await supabase
+    .from('operacoes')
+    .select('*')
+    .eq('user_id', session.id)
+  let html = '<h3>Operações:</h3>'
+  data.forEach(o => {
+    html += `<p>Valor: R$ ${o.valor} | Resultado: R$ ${o.resultado} | Data: ${new Date(o.data).toLocaleString()}</p>`
+  })
+  document.getElementById('operacoes').innerHTML = html
 }
 
-// Realizar operação simulada
-function realizarOperacao(){
-  if(!planoAtivo){ alert("Plano não está ativo."); return; }
-  let valor = parseFloat(document.getElementById("valorOperacao").value);
-  if(isNaN(valor) || valor <= 0){ alert("Digite um valor válido."); return; }
-  if(valor > saldoPlano){ alert("Saldo insuficiente para esta operação."); return; }
-
-  // Simulação de lucro/perda aleatório (-20% a +20%)
-  let resultado = (Math.random() * 0.4 - 0.2) * valor;
-  saldoPlano += resultado - valor;
-  saldoPlano = Math.max(saldoPlano, 0);
-  localStorage.setItem("saldoPlano", saldoPlano);
-
-  // Atualiza histórico
-  historico.push(`Operação: R$${valor.toFixed(2)} → Resultado: R$${resultado.toFixed(2)} em ${new Date().toLocaleString()}`);
-  localStorage.setItem("historico", JSON.stringify(historico));
-  atualizarDashboard();
-}
-
-// Logout
-function logout(){
-  localStorage.removeItem("session");
-  window.location.href = "login.html";
-}
-
-atualizarDashboard();
-setInterval(atualizarDashboard, 1000);
+carregarOperacoes()
 </script>
-
 </body>
 </html>
