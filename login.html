@@ -1,119 +1,59 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Login – Projeto X</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .login-box {
-      background: #020617;
-      padding: 30px;
-      border-radius: 10px;
-      width: 100%;
-      max-width: 380px;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #38bdf8;
-    }
-
-    label {
-      font-size: 14px;
-    }
-
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      margin-bottom: 15px;
-      border-radius: 5px;
-      border: none;
-    }
-
-    button {
-      background: #38bdf8;
-      color: #020617;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .links {
-      text-align: center;
-      margin-top: 15px;
-    }
-
-    .links a {
-      color: #38bdf8;
-      text-decoration: none;
-      display: inline-block;
-      margin: 5px;
-      font-size: 14px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Login Projeto X</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="supabase.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#0f172a;color:#e5e7eb;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
+.login-box{background:#020617;padding:30px;border-radius:10px;width:100%;max-width:360px;box-shadow:0 0 20px rgba(0,0,0,.5)}
+input,select,button{width:100%;padding:12px;margin-bottom:15px;border-radius:6px;border:none}
+input,select{background:#0f172a;color:#fff}
+button{background:#2563eb;color:#fff;font-size:16px;cursor:pointer}
+button:hover{background:#1d4ed8}
+</style>
 </head>
-
 <body>
-
 <div class="login-box">
-  <h1>Projeto X</h1>
-
-  <label>Usuário</label>
-  <input type="text" id="usuario" placeholder="Digite seu usuário">
-
-  <label>Senha</label>
-  <input type="password" id="senha" placeholder="Digite sua senha">
-
-  <label>Tipo de acesso</label>
+  <h2>Projeto X</h2>
+  <input type="text" id="email" placeholder="Email">
+  <input type="password" id="senha" placeholder="Senha">
   <select id="tipo">
-    <option value="user">Usuário</option>
+    <option value="usuario">Usuário</option>
     <option value="trader">Trader</option>
+    <option value="admin">Admin</option>
   </select>
-
-  <button onclick="login()">Entrar</button>
-
-  <div class="links">
-    <a href="termos.html">Termos de Uso</a>
-    <a href="risco.html">Política de Risco</a>
-  </div>
+  <button id="loginBtn">Entrar</button>
 </div>
 
-<script>
-  function login() {
-    const usuario = document.getElementById("usuario").value;
-    const senha = document.getElementById("senha").value;
-    const tipo = document.getElementById("tipo").value;
+<script type="module">
+import { supabase } from './supabase.js'
 
-    if (!usuario || !senha) {
-      alert("Preencha usuário e senha.");
-      return;
-    }
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value
+  const tipo = document.getElementById('tipo').value
 
-    // 🔐 LOGIN SIMPLES (MVP)
-    localStorage.setItem("logado", "true");
-    localStorage.setItem("tipoUsuario", tipo);
-    localStorage.setItem("nomeUsuario", usuario);
+  // Consulta ao Supabase
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .eq('tipo', tipo)
+    .single()
 
-    if (tipo === "trader") {
-      window.location.href = "trader.html";
-    } else {
-      window.location.href = "painel.html";
-    }
+  if(error){
+    alert('Usuário não encontrado')
+    return
   }
-</script>
 
+  // Salvar sessão local
+  localStorage.setItem('session', JSON.stringify(data))
+
+  if(tipo==='usuario') window.location.href='usuario.html'
+  else if(tipo==='trader') window.location.href='trader.html'
+  else window.location.href='admin.html'
+})
+</script>
 </body>
 </html>
