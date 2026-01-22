@@ -6,31 +6,135 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script type="module" src="supabase.js"></script>
 <style>
-body{font-family:Arial,sans-serif;background:#0f172a;color:#e5e7eb;padding:20px}
+body { font-family: Arial,sans-serif; background: #0f172a; color: #e5e7eb; padding: 20px; }
+button { padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+button:hover { background: #1d4ed8; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #444; padding: 8px; text-align: left; }
+th { background: #2563eb; }
 </style>
 </head>
 <body>
+
 <h2>Painel do Trader</h2>
-<div id="operacoes"></div>
+<div id="saldoPlano"></div>
+<div id="historico"></div>
+<button id="realizarOperacao">Simular Operação</button>
 
 <script type="module">
 import { supabase } from './supabase.js'
 
-const session = JSON.parse(localStorage.getItem('session'))
+// Recuperar sessão do trader
+let session = JSON.parse(localStorage.getItem('session'))
 
-async function carregarOperacoes(){
-  const { data } = await supabase
-    .from('operacoes')
-    .select('*')
-    .eq('user_id', session.id)
-  let html = '<h3>Operações:</h3>'
-  data.forEach(o => {
-    html += `<p>Valor: R$ ${o.valor} | Resultado: R$ ${o.resultado} | Data: ${new Date(o.data).toLocaleString()}</p>`
-  })
-  document.getElementById('operacoes').innerHTML = html
+if(!session || session.tipo !== 'trader'){
+    alert('Acesso negado!')
+    window.location.href = 'index.html'
 }
 
-carregarOperacoes()
+// Mostrar saldo do plano
+async function atualizarSaldoPlano(){
+    const { data: plano, error } = await supabase
+        .from('planos')
+        .select('*')
+        .eq('user_id', session.id)
+        .eq('nome', 'Plano B')
+        .single()
+
+    if(error){
+        console.error(error)
+        document.getElementById('saldoPlano').innerText = 'Erro ao carregar saldo do plano'
+        return
+    }
+
+    let tempoRestante = plano.fim ? Math.max(0, new Date(plano.fim) - new Date()) : 0
+    let diasRestantes = Math.ceil(tempoRestante / (1000*60*60*24))
+    document.getElementById('saldoPlano').innerHTML = `
+        <p>Saldo do Plano B: R$ ${plano.saldo} | Status: ${plano.status} | Dias restantes: ${diasRestantes}</p>
+    `
+}
+
+await atualizarSaldoPlano()
+
+// Carregar histórico de operações
+async function carregarHistorico(){
+    const { data, error } = await supabase
+        .from('operacoes')
+        .select('*')
+        .eq('user_id', session.id)
+        .order('data', { ascending: false })
+
+    if(error){
+        console.error(error)
+        document.getElementById('historico').innerText = 'Erro ao carregar histórico'
+        return
+    }
+
+    if(data.length === 0){
+        document.getElementById('historico').innerHTML = '<p>Nenhuma operação registrada.</p>'
+        return
+    }
+
+    let html = '<h3>Histórico de Operações:</h3>'
+    html += '<table><tr><th>Valor</th><th>Resultado</th><th>Data</th></tr>'
+    data.forEach(op => {
+        html += `<tr><td>R$ ${op.valor}</td><td>R$ ${op.resultado}</td><td>${new Date(op.data).toLocaleString()}</td></tr>`
+    })
+    html += '</table>'
+    document.getElementById('historico').innerHTML = html
+}
+
+await carregarHistorico()
+
+// Simular operação
+document.getElementById('realizarOperacao').addEventListener('click', async () => {
+    // Gerar valor aleatório de lucro/prejuízo
+    let valor = 100 // valor fixo ou dinâmico
+    let resultado = (Math.random() * 20 - 10).toFixed(2) // -10 a +10
+
+    // Inserir operação no Supabase
+    const { data, error } = await supabase
+        .from('operacoes')
+        .insert([{ user_id: session.id, valor, resultado }])
+
+    if(error){
+        console.error(error)
+        alert('Erro ao registrar operação')
+        return
+    }
+
+    // Atualizar saldo do plano
+    const { data: plano, error: planoError } = await supabase
+        .from('planos')
+        .select('*')
+        .eq('user_id', session.id)
+        .eq('nome', 'Plano B')
+        .single()
+
+    if(planoError){
+        console.error(planoError)
+        alert('Erro ao atualizar saldo do plano')
+        return
+    }
+
+    let novoSaldo = plano.saldo + parseFloat(resultado)
+
+    const { data: updated, error: updateError } = await supabase
+        .from('planos')
+        .update({ saldo: novoSaldo })
+        .eq('id', plano.id)
+
+    if(updateError){
+        console.error(updateError)
+        alert('Erro ao atualizar saldo do plano')
+        return
+    }
+
+    alert(`Operação registrada! Resultado: R$ ${resultado}`)
+    await atualizarSaldoPlano()
+    await carregarHistorico()
+})
 </script>
+
 </body>
 </html>
