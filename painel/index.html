@@ -3,54 +3,129 @@
 <head>
   <meta charset="UTF-8">
   <title>Painel do Usuário | Projeto X</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#020617; color:#e5e7eb; }
+    header { background:#0f172a; padding:20px; display:flex; justify-content:space-between; align-items:center; }
+    main { padding:30px; max-width:700px; margin:auto; }
+    .box { background:#020617; border:1px solid #1e293b; padding:20px; border-radius:12px; margin-bottom:20px; }
+    button { padding:12px 18px; border:none; border-radius:8px; background:#16a34a; color:white; cursor:pointer; font-size:15px; }
+    button.danger { background:#dc2626; }
+    input { width:100%; padding:10px; margin-top:10px; margin-bottom:15px; border-radius:6px; border:none; font-size:14px; }
+    .msg { margin-top:10px; font-size:14px; }
+  </style>
 </head>
 <body>
+
+<header>
   <h2>Painel do Usuário</h2>
-  <p>Saldo disponível (R$): <span id="saldo">0</span></p>
-  
-  <h3>Depositar Moeda X</h3>
-  <input id="deposito" type="number" placeholder="Valor em R$" />
-  <button onclick="depositar()">Depositar</button>
-  <div id="msg"></div>
+  <button class="danger" onclick="logout()">Sair</button>
+</header>
 
-  <script src="../supabase.js"></script>
-  <script>
-    async function atualizarSaldo() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userEmail = sessionData.session.user.email;
+<main>
+  <div class="box">
+    <h3>Saldo Atual</h3>
+    <p id="saldoUsuario">0</p>
+  </div>
 
-      const { data: user } = await supabase
-        .from("users")
-        .select("saldo")
-        .eq("email", userEmail)
-        .single();
+  <div class="box">
+    <h3>Depósito</h3>
+    <p>Adicione dinheiro ao seu saldo (convertido para Moeda X 1:1)</p>
+    <input type="number" id="deposito" placeholder="Ex: 100" />
+    <button onclick="adicionarDeposito()">Depositar</button>
+    <div class="msg" id="msgDeposito"></div>
+  </div>
 
-      document.getElementById("saldo").innerText = user.saldo;
-    }
+  <div class="box">
+    <h3>Histórico de Dias</h3>
+    <ul id="historicoDias"></ul>
+  </div>
+</main>
 
-    async function depositar() {
-      const valor = parseFloat(document.getElementById("deposito").value);
-      const msg = document.getElementById("msg");
-      if (isNaN(valor) || valor <= 0) {
-        msg.innerText = "Informe um valor válido";
-        msg.style.color = "red";
-        return;
-      }
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase.js"></script>
+<script src="../logout.js"></script>
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userEmail = sessionData.session.user.email;
+<script>
+async function protegerUsuario() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) window.location.href = "../auth/login.html";
+}
+protegerUsuario();
 
-      await supabase
-        .from("users")
-        .update({ saldo: supabase.raw("saldo + ?", [valor]) })
-        .eq("email", userEmail);
+// Atualiza saldo do usuário
+async function atualizarSaldo() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const email = session.user.email;
 
-      msg.innerText = `Depósito de ${valor} Moeda X realizado com sucesso!`;
-      msg.style.color = "green";
-      atualizarSaldo();
-    }
+  const { data: user } = await supabase
+    .from('users')
+    .select('saldo')
+    .eq('email', email)
+    .single();
+
+  document.getElementById("saldoUsuario").innerText = user.saldo.toFixed(2);
+}
+
+// Adicionar depósito ao saldo (Moeda X)
+async function adicionarDeposito() {
+  const valor = parseFloat(document.getElementById("deposito").value);
+  const msg = document.getElementById("msgDeposito");
+
+  if (isNaN(valor) || valor <= 0) {
+    msg.innerText = "Informe um valor válido";
+    msg.style.color = "red";
+    return;
+  }
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const email = session.user.email;
+
+    await supabase
+      .from('users')
+      .update({ saldo: supabase.raw("saldo + ?", [valor]) })
+      .eq('email', email);
+
+    msg.innerText = `Depósito de ${valor.toFixed(2)} Moeda X realizado com sucesso!`;
+    msg.style.color = "green";
 
     atualizarSaldo();
-  </script>
+    carregarHistorico();
+  } catch (err) {
+    msg.innerText = "Erro: " + err.message;
+    msg.style.color = "red";
+  }
+}
+
+// Carregar histórico de dias do trader
+async function carregarHistorico() {
+  const historico = document.getElementById("historicoDias");
+  historico.innerHTML = "";
+
+  try {
+    const { data } = await supabase
+      .from("dias_trader")
+      .select("*")
+      .order("data", { ascending: false });
+
+    data.forEach(d => {
+      const li = document.createElement("li");
+      li.innerText = `Data: ${new Date(d.data).toLocaleDateString()} - Percentual: ${d.percentual}%`;
+      historico.appendChild(li);
+    });
+  } catch (err) {
+    const li = document.createElement("li");
+    li.innerText = "Erro ao carregar histórico: " + err.message;
+    historico.appendChild(li);
+  }
+}
+
+// Inicializa painel
+atualizarSaldo();
+carregarHistorico();
+</script>
+
 </body>
 </html>
