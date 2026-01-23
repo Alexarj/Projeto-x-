@@ -99,45 +99,87 @@
 <script src="../logout.js"></script>
 
 <script>
-  const EMAIL_TRADER = "fcmggo@gmail.com";
+const EMAIL_TRADER = "fcmggo@gmail.com";
 
-  async function protegerTrader() {
-    const { data: { session } } = await supabase.auth.getSession();
+async function protegerTrader() {
+  const { data: { session } } = await supabase.auth.getSession();
 
-    // Não logado
-    if (!session) {
-      window.location.href = "../auth/login.html";
-      return;
-    }
-
-    // Logado mas NÃO é o trader
-    if (session.user.email !== EMAIL_TRADER) {
-      window.location.href = "index.html";
-      return;
-    }
+  if (!session) {
+    window.location.href = "../auth/login.html";
+    return;
   }
 
-  protegerTrader();
+  if (session.user.email !== EMAIL_TRADER) {
+    window.location.href = "index.html";
+    return;
+  }
+}
 
-  function encerrarDia() {
-    const valor = document.getElementById("resultado").value;
-    const msg = document.getElementById("msg");
+protegerTrader();
 
-    if (valor === "") {
-      msg.innerText = "Informe o lucro ou prejuízo do dia.";
-      msg.style.color = "red";
-      return;
+async function encerrarDia() {
+  const valor = parseFloat(document.getElementById("resultado").value);
+  const msg = document.getElementById("msg");
+
+  if (isNaN(valor)) {
+    msg.innerText = "Informe um valor válido de lucro ou prejuízo.";
+    msg.style.color = "red";
+    return;
+  }
+
+  msg.innerText = "Processando...";
+  msg.style.color = "white";
+
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userEmail = sessionData.session.user.email;
+
+    // Criar registro do dia
+    const { data, error } = await supabase
+      .from("dias_trader")
+      .insert([
+        {
+          trader_email: userEmail,
+          resultado: valor,
+          data: new Date().toISOString()
+        }
+      ]);
+
+    if (error) throw error;
+
+    // Calcular lucro 70/30
+    let lucroTrader = 0;
+    let lucroUsuario = 0;
+
+    if (valor > 0) {
+      lucroUsuario = valor * 0.7;
+      lucroTrader = valor * 0.3;
+    } else {
+      // prejuízo é 100% do usuário
+      lucroUsuario = valor;
+      lucroTrader = 0;
     }
 
-    msg.innerText =
-      "Dia encerrado com resultado: " + valor;
+    // Atualizar saldo do trader
+    await supabase
+      .from("users")
+      .update({ saldo: supabase.raw("saldo + ?", [lucroTrader]) })
+      .eq("email", userEmail);
+
+    // Atualizar saldo dos usuários (todos usuários comuns)
+    await supabase
+      .from("users")
+      .update({ saldo: supabase.raw("saldo + ?", [lucroUsuario]) })
+      .neq("email", userEmail);
+
+    msg.innerText = `Dia encerrado! Resultado: ${valor} | Lucro usuário: ${lucroUsuario} | Lucro trader: ${lucroTrader}`;
     msg.style.color = "lightgreen";
 
-    // Próximo passo:
-    // - salvar no Supabase
-    // - calcular 70/30
-    // - distribuir saldo
+  } catch (err) {
+    msg.innerText = "Erro ao registrar: " + err.message;
+    msg.style.color = "red";
   }
+}
 </script>
 
 </body>
