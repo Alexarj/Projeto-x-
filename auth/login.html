@@ -57,6 +57,21 @@
       background: #1d4ed8;
     }
 
+    .links {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .links a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+
+    .links a:hover {
+      text-decoration: underline;
+    }
+
     .msg {
       margin-top: 15px;
       text-align: center;
@@ -73,6 +88,11 @@
     <input type="password" id="password" placeholder="Senha" />
 
     <button onclick="login()">Entrar</button>
+
+    <div class="links">
+      <a href="register.html">Criar conta</a> |
+      <a href="reset.html">Esqueci a senha</a>
+    </div>
 
     <div class="msg" id="msg"></div>
   </div>
@@ -95,7 +115,7 @@
 
       msg.innerText = "Entrando...";
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
@@ -109,9 +129,8 @@
       msg.innerText = "Login realizado com sucesso!";
       msg.style.color = "lightgreen";
 
-      // Redireciona para o painel
       setTimeout(() => {
-        window.location.href = "/painel/index.html";
+        window.location.href = "../painel/index.html";
       }, 800);
     }
   </script>
