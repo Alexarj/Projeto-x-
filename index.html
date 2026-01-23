@@ -2,164 +2,44 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Painel do Usuário</title>
+<title>Projeto X</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: #e5e7eb;
+  margin:0;
+  font-family:Arial;
+  background:#0f172a;
+  color:#e5e7eb;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
-
-header {
-  background: #020617;
-  padding: 20px;
-  text-align: center;
-}
-
-section {
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
-}
-
 .card {
-  background: #020617;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
+  background:#020617;
+  padding:30px;
+  border-radius:12px;
+  text-align:center;
 }
-
-h2 {
-  margin-top: 0;
-  color: #38bdf8;
-}
-
 button {
-  padding: 12px 20px;
-  background: #2563eb;
-  border: none;
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-button:hover {
-  background: #1d4ed8;
-}
-
-input {
-  padding: 10px;
-  width: 100%;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  border: none;
+  padding:12px 20px;
+  background:#2563eb;
+  border:none;
+  color:white;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
-
-<header>
-  <h1>Painel do Usuário</h1>
-</header>
-
-<section>
-
-  <!-- SALDO -->
   <div class="card">
-    <h2>Saldo Livre</h2>
-    <p id="saldo">Carregando...</p>
+    <h1>Projeto X</h1>
+    <p>Plataforma de investimentos assistidos</p>
+    <button onclick="window.location.href='auth/login.html'">
+      Entrar
+    </button>
   </div>
-
-  <!-- PLANO ATIVO -->
-  <div class="card">
-    <h2>Plano B Ativo</h2>
-    <p id="plano">Nenhum plano ativo</p>
-  </div>
-
-  <!-- ENTRAR NO PLANO -->
-  <div class="card">
-    <h2>Entrar no Plano B</h2>
-    <input type="number" id="valorPlano" placeholder="Valor para investir">
-    <button onclick="entrarPlano()">Entrar no Plano</button>
-  </div>
-
-  <!-- HISTÓRICO -->
-  <div class="card">
-    <h2>Histórico</h2>
-    <ul id="historico"></ul>
-  </div>
-
-</section>
-
-<!-- SUPABASE -->
-<script src="supabase.js"></script>
-
-<script>
-const USER_ID = "UUID-DO-USUARIO-LOGADO"; // depois vem do login
-
-async function carregarPainel() {
-
-  // SALDO
-  const { data: user } = await supabase
-    .from("users")
-    .select("saldo_livre")
-    .eq("id", USER_ID)
-    .single();
-
-  document.getElementById("saldo").innerText =
-    "R$ " + (user?.saldo_livre ?? 0).toFixed(2);
-
-  // PLANO ATIVO
-  const { data: plano } = await supabase
-    .from("planos_b")
-    .select("*")
-    .eq("user_id", USER_ID)
-    .eq("status", "ativo")
-    .maybeSingle();
-
-  if (plano) {
-    document.getElementById("plano").innerText =
-      `Capital: R$ ${plano.capital} | Resultado: R$ ${plano.resultado}`;
-  }
-
-  // HISTÓRICO
-  const { data: historico } = await supabase
-    .from("planos_b_historico")
-    .select("*")
-    .eq("user_id", USER_ID)
-    .order("criado_em", { ascending: false });
-
-  const ul = document.getElementById("historico");
-  ul.innerHTML = "";
-
-  historico?.forEach(h => {
-    const li = document.createElement("li");
-    li.innerText =
-      `${h.data_fechamento} | Capital: R$ ${h.capital} | Resultado: R$ ${h.resultado} | Final: R$ ${h.valor_final}`;
-    ul.appendChild(li);
-  });
-}
-
-async function entrarPlano() {
-  const valor = Number(document.getElementById("valorPlano").value);
-  if (!valor || valor <= 0) return alert("Valor inválido");
-
-  await supabase.rpc("entrar_plano_b", {
-    p_user_id: USER_ID,
-    p_valor: valor
-  });
-
-  alert("Plano ativado!");
-  carregarPainel();
-}
-
-carregarPainel();
-</script>
-
 </body>
 </html>
