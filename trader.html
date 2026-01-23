@@ -4,69 +4,31 @@
 <meta charset="UTF-8">
 <title>Painel do Trader</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script type="module" src="supabase.js"></script>
 <style>
-body { font-family: Arial,sans-serif; background:#0f172a; color:#e5e7eb; padding:20px; }
-button { padding:10px 20px; background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:10px; }
-button:hover { background:#1d4ed8; }
-table { width:100%; border-collapse: collapse; margin-top:20px; }
-th, td { border:1px solid #444; padding:8px; text-align:left; }
-th { background:#2563eb; }
+body { background:#020617; color:#e5e7eb; font-family:Arial; padding:20px }
+button { padding:14px; background:#dc2626; color:#fff; border:none; border-radius:8px }
 </style>
 </head>
-<body>
 
+<body>
 <h2>Painel do Trader</h2>
-<div id="saldoPlanoB"></div>
-<div id="historico"></div>
-<button id="realizarOperacao">Simular Operação</button>
+
+<p>Janela ativa: 08h às 20h</p>
+
+<button onclick="encerrarDia()">Encerrar Dia</button>
 
 <script type="module">
 import { supabase } from './supabase.js'
 
-let session = JSON.parse(localStorage.getItem('session'))
-if(!session || session.tipo !== 'trader'){ alert('Acesso negado!'); window.location.href='index.html' }
+async function encerrarDia() {
+  if (!confirm("Encerrar o dia e calcular resultados?")) return
 
-async function atualizarSaldoPlanoB(){
-    const { data: planoB } = await supabase.from('planos').select('*').eq('user_id', session.id).eq('nome','Plano B').single()
-    document.getElementById('saldoPlanoB').innerText = 'Saldo Plano B: R$ ' + (planoB?.saldo || 0)
-    return planoB
+  const { error } = await supabase.rpc("encerrar_dia_plano_b")
+
+  if (error) return alert(error.message)
+
+  alert("Dia encerrado com sucesso")
 }
-
-async function carregarHistorico(){
-    const { data } = await supabase.from('operacoes').select('*').eq('user_id', session.id).order('data',{ascending:false})
-    if(!data || data.length===0){ document.getElementById('historico').innerHTML='<p>Nenhuma operação registrada.</p>'; return }
-    let html='<h3>Histórico de Operações</h3><table><tr><th>Valor</th><th>Resultado</th><th>Data</th></tr>'
-    data.forEach(op => html+=`<tr><td>R$ ${op.valor}</td><td>R$ ${op.resultado}</td><td>${new Date(op.data).toLocaleString()}</td></tr>`)
-    html+='</table>'
-    document.getElementById('historico').innerHTML=html
-}
-
-await atualizarSaldoPlanoB()
-await carregarHistorico()
-
-document.getElementById('realizarOperacao').addEventListener('click', async () => {
-    const valor = 100
-    const resultado = parseFloat((Math.random()*40-20).toFixed(2)) // -20 a +20
-
-    // Aplicar regra 70/30
-    let lucroUsuario = 0, lucroPlataforma = 0
-    if(resultado>=0){ lucroUsuario=resultado*0.7; lucroPlataforma=resultado*0.3 }
-    else{ lucroUsuario=resultado; lucroPlataforma=0 }
-
-    // Atualizar saldo do Plano B
-    const planoB = await atualizarSaldoPlanoB()
-    const novoSaldo = (planoB.saldo || 0) + lucroUsuario
-    await supabase.from('planos').update({ saldo: novoSaldo }).eq('id', planoB.id)
-
-    // Registrar operação
-    await supabase.from('operacoes').insert([{ user_id: session.id, valor, resultado }])
-
-    alert(`Operação registrada! Resultado: R$ ${resultado.toFixed(2)}\nLucro usuário: R$ ${lucroUsuario.toFixed(2)} | Plataforma: R$ ${lucroPlataforma.toFixed(2)}`)
-    await atualizarSaldoPlanoB()
-    await carregarHistorico()
-})
 </script>
-
 </body>
 </html>
