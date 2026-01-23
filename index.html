@@ -1,131 +1,165 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Projeto X – Home</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Painel do Usuário</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #020617);
-      color: #e5e7eb;
-      line-height: 1.6;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+}
 
-    header {
-      background: #020617;
-      padding: 32px 20px;
-      text-align: center;
-    }
+header {
+  background: #020617;
+  padding: 20px;
+  text-align: center;
+}
 
-    header h1 {
-      margin: 0;
-      font-size: 28px;
-    }
+section {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
 
-    header p {
-      margin-top: 8px;
-      color: #9ca3af;
-    }
+.card {
+  background: #020617;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
 
-    section {
-      max-width: 900px;
-      margin: auto;
-      padding: 24px 20px;
-    }
+h2 {
+  margin-top: 0;
+  color: #38bdf8;
+}
 
-    .box {
-      background: #020617;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,.4);
-    }
+button {
+  padding: 12px 20px;
+  background: #2563eb;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
 
-    h2 {
-      color: #38bdf8;
-      margin-top: 0;
-    }
+button:hover {
+  background: #1d4ed8;
+}
 
-    footer {
-      background: #020617;
-      text-align: center;
-      padding: 16px;
-      font-size: 14px;
-      color: #9ca3af;
-    }
-
-    footer a {
-      color: #38bdf8;
-      text-decoration: none;
-      margin: 0 8px;
-    }
-  </style>
+input {
+  padding: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: none;
+}
+</style>
 </head>
+
 <body>
 
 <header>
-  <h1>Projeto X</h1>
-  <p>Trading esportivo em Exchange com leitura de mercado e gestão de risco</p>
+  <h1>Painel do Usuário</h1>
 </header>
 
 <section>
 
-  <div class="box">
-    <h2>O que é o Projeto X</h2>
-    <p>
-      O <strong>Projeto X</strong> é um projeto independente focado em
-      <strong>trading esportivo em bolsas de apostas (Exchange)</strong>,
-      com foco principal em futebol.
-    </p>
-    <p>
-      As operações são manuais, baseadas em leitura de mercado.
-      Não há promessa de lucro ou garantia de resultados.
-    </p>
-
-    <!-- BOTÃO VER PLANOS -->
-    <div style="text-align:center; margin-top:32px;">
-      <a href="planos.html"
-         style="
-           display:inline-block;
-           padding:14px 30px;
-           background:#2563eb;
-           color:#ffffff;
-           text-decoration:none;
-           border-radius:8px;
-           font-size:16px;
-           font-weight:600;
-           transition: background 0.3s;
-         "
-         onmouseover="this.style.background='#1d4ed8'"
-         onmouseout="this.style.background='#2563eb'"
-      >
-        Ver Planos
-      </a>
-    </div>
-    <!-- FIM DO BOTÃO -->
-
+  <!-- SALDO -->
+  <div class="card">
+    <h2>Saldo Livre</h2>
+    <p id="saldo">Carregando...</p>
   </div>
 
-  <div class="box">
-    <h2>Como funciona</h2>
-    <ul>
-      <li>Atuação em mercados de Exchange (ex: Betfair)</li>
-      <li>1 a 3 sinais por dia, quando houver oportunidade</li>
-      <li>Gestão de risco aplicada</li>
-      <li>Sem uso de martingale (gale)</li>
-    </ul>
+  <!-- PLANO ATIVO -->
+  <div class="card">
+    <h2>Plano B Ativo</h2>
+    <p id="plano">Nenhum plano ativo</p>
+  </div>
+
+  <!-- ENTRAR NO PLANO -->
+  <div class="card">
+    <h2>Entrar no Plano B</h2>
+    <input type="number" id="valorPlano" placeholder="Valor para investir">
+    <button onclick="entrarPlano()">Entrar no Plano</button>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="card">
+    <h2>Histórico</h2>
+    <ul id="historico"></ul>
   </div>
 
 </section>
 
-<footer>
-  © 2026 – Projeto X |
-  <a href="termos.html">Termos de Uso</a> |
-  <a href="risco.html">Política de Risco</a>
-</footer>
+<!-- SUPABASE -->
+<script src="supabase.js"></script>
+
+<script>
+const USER_ID = "UUID-DO-USUARIO-LOGADO"; // depois vem do login
+
+async function carregarPainel() {
+
+  // SALDO
+  const { data: user } = await supabase
+    .from("users")
+    .select("saldo_livre")
+    .eq("id", USER_ID)
+    .single();
+
+  document.getElementById("saldo").innerText =
+    "R$ " + (user?.saldo_livre ?? 0).toFixed(2);
+
+  // PLANO ATIVO
+  const { data: plano } = await supabase
+    .from("planos_b")
+    .select("*")
+    .eq("user_id", USER_ID)
+    .eq("status", "ativo")
+    .maybeSingle();
+
+  if (plano) {
+    document.getElementById("plano").innerText =
+      `Capital: R$ ${plano.capital} | Resultado: R$ ${plano.resultado}`;
+  }
+
+  // HISTÓRICO
+  const { data: historico } = await supabase
+    .from("planos_b_historico")
+    .select("*")
+    .eq("user_id", USER_ID)
+    .order("criado_em", { ascending: false });
+
+  const ul = document.getElementById("historico");
+  ul.innerHTML = "";
+
+  historico?.forEach(h => {
+    const li = document.createElement("li");
+    li.innerText =
+      `${h.data_fechamento} | Capital: R$ ${h.capital} | Resultado: R$ ${h.resultado} | Final: R$ ${h.valor_final}`;
+    ul.appendChild(li);
+  });
+}
+
+async function entrarPlano() {
+  const valor = Number(document.getElementById("valorPlano").value);
+  if (!valor || valor <= 0) return alert("Valor inválido");
+
+  await supabase.rpc("entrar_plano_b", {
+    p_user_id: USER_ID,
+    p_valor: valor
+  });
+
+  alert("Plano ativado!");
+  carregarPainel();
+}
+
+carregarPainel();
+</script>
 
 </body>
 </html>
