@@ -3,74 +3,123 @@
 <head>
   <meta charset="UTF-8">
   <title>Painel do Trader | Projeto X</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#020617; color:#e5e7eb; }
+    header { background:#0f172a; padding:20px; display:flex; justify-content:space-between; align-items:center; }
+    main { padding:30px; }
+    .box { background:#020617; border:1px solid #1e293b; padding:20px; border-radius:12px; max-width:600px; margin-bottom:20px; }
+    button { padding:12px 18px; border:none; border-radius:8px; background:#16a34a; color:white; cursor:pointer; font-size:15px; }
+    button.danger { background:#dc2626; }
+    input { width:100%; padding:10px; margin-top:10px; margin-bottom:15px; border-radius:6px; border:none; font-size:14px; }
+    .msg { margin-top:10px; font-size:14px; }
+  </style>
 </head>
 <body>
+
+<header>
   <h2>Painel do Trader</h2>
-  <p>Saldo total disponível para operar: <span id="saldoTotal">0</span></p>
+  <button class="danger" onclick="logout()">Sair</button>
+</header>
 
-  <h3>Encerrar Dia</h3>
-  <input type="number" id="resultado" placeholder="Ex: 150 ou -80" />
-  <button onclick="encerrarDia()">Finalizar Dia</button>
-  <div id="msg"></div>
+<main>
+  <div class="box">
+    <h3>Saldo total disponível para operar</h3>
+    <p id="saldoTotal">0</p>
+  </div>
 
-  <script src="../supabase.js"></script>
-  <script>
-    const EMAIL_TRADER = "fcmggo@gmail.com";
+  <div class="box">
+    <h3>Encerrar Dia</h3>
+    <p>Informe o percentual de lucro do dia (ex: 10 para 10%)</p>
+    <input type="number" id="percentual" placeholder="Ex: 10" />
+    <button onclick="encerrarDia()">Finalizar Dia</button>
+    <div class="msg" id="msg"></div>
+  </div>
+</main>
 
-    async function protegerTrader() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) window.location.href = "../auth/login.html";
-      if (session.user.email !== EMAIL_TRADER) window.location.href = "../painel/index.html";
-    }
-    protegerTrader();
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase.js"></script>
+<script src="../logout.js"></script>
 
-    async function atualizarSaldo() {
-      const { data: users } = await supabase
+<script>
+const EMAIL_TRADER = "fcmggo@gmail.com";
+
+// Protege acesso do trader
+async function protegerTrader() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) window.location.href = "../auth/login.html";
+  if (session.user.email !== EMAIL_TRADER) window.location.href = "../painel/index.html";
+}
+protegerTrader();
+
+// Atualiza saldo total disponível para operar
+async function atualizarSaldo() {
+  const { data: usuarios } = await supabase
+    .from("users")
+    .select("saldo")
+    .eq("plano", "B");
+  
+  let total = 0;
+  usuarios.forEach(u => total += u.saldo);
+  document.getElementById("saldoTotal").innerText = total.toFixed(2);
+}
+
+// Função para encerrar dia e calcular lucro 70/30
+async function encerrarDia() {
+  const aumentoPercentual = parseFloat(document.getElementById("percentual").value);
+  const msg = document.getElementById("msg");
+
+  if (isNaN(aumentoPercentual)) {
+    msg.innerText = "Informe um percentual válido";
+    msg.style.color = "red";
+    return;
+  }
+
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const traderEmail = sessionData.session.user.email;
+
+    // Busca todos os usuários do Plano B
+    const { data: usuarios } = await supabase
+      .from("users")
+      .select("id, saldo")
+      .eq("plano", "B");
+
+    let totalTrader = 0;
+
+    for (const user of usuarios) {
+      const lucroTotal = user.saldo * (aumentoPercentual / 100); // lucro proporcional ao depósito
+      const lucroUsuario = lucroTotal * 0.7; // 70% para usuário
+      const lucroTrader = lucroTotal * 0.3;  // 30% para trader
+      totalTrader += lucroTrader;
+
+      // Atualiza saldo do usuário
+      await supabase
         .from("users")
-        .select("saldo");
-
-      let total = 0;
-      users.forEach(u => total += u.saldo);
-      document.getElementById("saldoTotal").innerText = total;
+        .update({ saldo: user.saldo + lucroUsuario })
+        .eq("id", user.id);
     }
 
-    async function encerrarDia() {
-      const valor = parseFloat(document.getElementById("resultado").value);
-      const msg = document.getElementById("msg");
-      if (isNaN(valor)) {
-        msg.innerText = "Informe um valor válido";
-        msg.style.color = "red";
-        return;
-      }
+    // Atualiza saldo do trader
+    await supabase
+      .from("users")
+      .update({ saldo: supabase.raw("saldo + ?", [totalTrader]) })
+      .eq("email", traderEmail);
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const traderEmail = sessionData.session.user.email;
-
-      await supabase.from("dias_trader").insert([{ trader_email: traderEmail, resultado: valor }]);
-
-      let lucroTrader = 0;
-      let lucroUsuario = 0;
-
-      if (valor > 0) {
-        lucroUsuario = valor * 0.7;
-        lucroTrader = valor * 0.3;
-      } else {
-        lucroUsuario = valor;
-        lucroTrader = 0;
-      }
-
-      // Atualizar trader
-      await supabase.from("users").update({ saldo: supabase.raw("saldo + ?", [lucroTrader]) }).eq("email", traderEmail);
-      // Atualizar todos os usuários exceto trader
-      await supabase.from("users").update({ saldo: supabase.raw("saldo + ?", [lucroUsuario]) }).neq("email", traderEmail);
-
-      msg.innerText = `Dia encerrado! Resultado: ${valor} | Lucro usuário: ${lucroUsuario} | Lucro trader: ${lucroTrader}`;
-      msg.style.color = "green";
-
-      atualizarSaldo();
-    }
+    msg.innerText = `Dia encerrado! Lucro distribuído: usuários 70%, trader 30%.`;
+    msg.style.color = "green";
 
     atualizarSaldo();
-  </script>
+
+  } catch (err) {
+    msg.innerText = "Erro: " + err.message;
+    msg.style.color = "red";
+  }
+}
+
+atualizarSaldo();
+</script>
+
 </body>
-</html>
+  </html>
