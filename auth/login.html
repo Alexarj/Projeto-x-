@@ -1,117 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Login | Projeto X</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #020617;
-      color: #e5e7eb;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .container {
-      background: #0f172a;
-      padding: 40px;
-      border-radius: 12px;
-      width: 350px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 20px;
-      border-radius: 6px;
-      border: none;
-      font-size: 14px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background: #16a34a;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .msg {
-      text-align: center;
-      margin-top: 15px;
-      font-size: 14px;
-    }
-  </style>
 </head>
-
 <body>
-
-<div class="container">
   <h2>Login</h2>
-  <form id="loginForm">
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Senha" required />
-    <button type="submit">Entrar</button>
-  </form>
-  <div class="msg" id="msg"></div>
-</div>
+  <input id="email" type="email" placeholder="Email" />
+  <input id="senha" type="password" placeholder="Senha" />
+  <button onclick="login()">Entrar</button>
+  <div id="msg"></div>
 
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../supabase.js"></script>
+  <script src="../supabase.js"></script>
+  <script>
+    async function login() {
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      const msg = document.getElementById('msg');
 
-<script>
-const loginForm = document.getElementById("loginForm");
-const msg = document.getElementById("msg");
-const EMAIL_TRADER = "fcmggo@gmail.com";
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+      if (error) {
+        msg.innerText = error.message;
+        msg.style.color = "red";
+        return;
+      }
 
-loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  msg.innerText = "Entrando...";
-  msg.style.color = "white";
-
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      msg.innerText = "Erro: " + error.message;
-      msg.style.color = "red";
-      return;
+      // Redireciona de acordo com plano ou trader
+      if (email === "fcmggo@gmail.com") {
+        window.location.href = "../painel/trader.html";
+      } else {
+        window.location.href = "../painel/index.html";
+      }
     }
-
-    // Login OK, decidir painel
-    if (email === EMAIL_TRADER) {
-      window.location.href = "../painel/trader.html";
-    } else {
-      window.location.href = "../painel/index.html";
-    }
-
-  } catch (err) {
-    msg.innerText = "Erro inesperado: " + err.message;
-    msg.style.color = "red";
-  }
-});
-</script>
-
+  </script>
 </body>
 </html>
