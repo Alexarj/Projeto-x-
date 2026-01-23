@@ -7,8 +7,8 @@
   <style>
     body { margin:0; font-family: Arial, sans-serif; background:#020617; color:#e5e7eb; }
     header { background:#0f172a; padding:20px; display:flex; justify-content:space-between; align-items:center; }
-    main { padding:30px; }
-    .box { background:#020617; border:1px solid #1e293b; padding:20px; border-radius:12px; max-width:600px; margin-bottom:20px; }
+    main { padding:30px; max-width:700px; margin:auto; }
+    .box { background:#020617; border:1px solid #1e293b; padding:20px; border-radius:12px; margin-bottom:20px; }
     button { padding:12px 18px; border:none; border-radius:8px; background:#16a34a; color:white; cursor:pointer; font-size:15px; }
     button.danger { background:#dc2626; }
     input { width:100%; padding:10px; margin-top:10px; margin-bottom:15px; border-radius:6px; border:none; font-size:14px; }
@@ -24,28 +24,29 @@
 
 <main>
   <div class="box">
-    <h3>Saldo total disponível para operar</h3>
-    <p id="saldoTotal">0</p>
+    <h3>Status do Dia</h3>
+    <p>Período operacional: <strong>08h às 20h</strong></p>
+    <p id="statusDia">Status: aguardando</p>
   </div>
 
   <div class="box">
     <h3>Encerrar Dia</h3>
-    <p>Informe o percentual de lucro do dia (ex: 10 para 10%)</p>
-    <input type="number" id="percentual" placeholder="Ex: 10" />
+    <p>Informe o percentual de lucro do dia:</p>
+    <input type="number" id="percentual" placeholder="Ex: 10">
     <button onclick="encerrarDia()">Finalizar Dia</button>
     <div class="msg" id="msg"></div>
   </div>
 </main>
 
-<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../supabase.js"></script>
 <script src="../logout.js"></script>
 
 <script>
 const EMAIL_TRADER = "fcmggo@gmail.com";
+const HORA_INICIO = 8; // 08h
+const HORA_FIM = 20;   // 20h
 
-// Protege acesso do trader
 async function protegerTrader() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) window.location.href = "../auth/login.html";
@@ -53,23 +54,29 @@ async function protegerTrader() {
 }
 protegerTrader();
 
-// Atualiza saldo total disponível para operar
-async function atualizarSaldo() {
-  const { data: usuarios } = await supabase
-    .from("users")
-    .select("saldo")
-    .eq("plano", "B");
-  
-  let total = 0;
-  usuarios.forEach(u => total += u.saldo);
-  document.getElementById("saldoTotal").innerText = total.toFixed(2);
+function estaOperando() {
+  const agora = new Date();
+  const hora = agora.getHours();
+  return hora >= HORA_INICIO && hora < HORA_FIM;
 }
+
+// Atualiza status do dia
+function atualizarStatus() {
+  const statusEl = document.getElementById("statusDia");
+  statusEl.innerText = estaOperando() ? "Em operação" : "Fora do período";
+}
+setInterval(atualizarStatus, 1000);
+atualizarStatus();
 
 // Função para encerrar dia e calcular lucro 70/30
 async function encerrarDia() {
+  if (estaOperando()) {
+    alert("Só é possível encerrar o dia após o horário de operação");
+    return;
+  }
+
   const aumentoPercentual = parseFloat(document.getElementById("percentual").value);
   const msg = document.getElementById("msg");
-
   if (isNaN(aumentoPercentual)) {
     msg.innerText = "Informe um percentual válido";
     msg.style.color = "red";
@@ -89,9 +96,9 @@ async function encerrarDia() {
     let totalTrader = 0;
 
     for (const user of usuarios) {
-      const lucroTotal = user.saldo * (aumentoPercentual / 100); // lucro proporcional ao depósito
-      const lucroUsuario = lucroTotal * 0.7; // 70% para usuário
-      const lucroTrader = lucroTotal * 0.3;  // 30% para trader
+      const lucroTotal = user.saldo * (aumentoPercentual / 100);
+      const lucroUsuario = lucroTotal * 0.7;
+      const lucroTrader = lucroTotal * 0.3;
       totalTrader += lucroTrader;
 
       // Atualiza saldo do usuário
@@ -107,19 +114,18 @@ async function encerrarDia() {
       .update({ saldo: supabase.raw("saldo + ?", [totalTrader]) })
       .eq("email", traderEmail);
 
-    msg.innerText = `Dia encerrado! Lucro distribuído: usuários 70%, trader 30%.`;
-    msg.style.color = "green";
+    // Salva histórico do dia
+    await supabase.from("dias_trader").insert([{ trader_email: traderEmail, percentual: aumentoPercentual }]);
 
-    atualizarSaldo();
+    msg.innerText = `Dia encerrado! Lucro distribuído (70% usuários / 30% trader)`;
+    msg.style.color = "green";
 
   } catch (err) {
     msg.innerText = "Erro: " + err.message;
     msg.style.color = "red";
   }
 }
-
-atualizarSaldo();
 </script>
 
 </body>
-  </html>
+</html>
