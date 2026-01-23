@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel do Usuário</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="painel.css">
+</head>
+
+<body>
+
+<header>
+  <h1>Painel do Usuário</h1>
+  <button class="logout" onclick="logout()">Sair</button>
+</header>
+
+<section>
+
+  <div class="card">
+    <h2>Saldo Livre</h2>
+    <p id="saldo">Carregando...</p>
+  </div>
+
+  <div class="card">
+    <h2>Plano B Ativo</h2>
+    <p id="plano">Nenhum plano ativo</p>
+  </div>
+
+  <div class="card">
+    <h2>Entrar no Plano B</h2>
+    <input type="number" id="valorPlano" placeholder="Valor para investir">
+    <button onclick="entrarPlano()">Entrar no Plano</button>
+  </div>
+
+  <div class="card">
+    <h2>Histórico</h2>
+    <ul id="historico"></ul>
+  </div>
+
+</section>
+
+<script src="../supabase.js"></script>
+<script src="painel.js"></script>
+</body>
+</html>
