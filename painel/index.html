@@ -1,45 +1,83 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Painel do Usuário</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="painel.css">
+  <meta charset="UTF-8" />
+  <title>Painel | Projeto X</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+
+    header {
+      background: #020617;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    main {
+      padding: 30px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #dc2626;
+      color: white;
+      cursor: pointer;
+    }
+
+    .box {
+      background: #020617;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 600px;
+    }
+  </style>
 </head>
 
 <body>
 
 <header>
-  <h1>Painel do Usuário</h1>
-  <button class="logout" onclick="logout()">Sair</button>
+  <h2>Painel do Usuário</h2>
+  <button onclick="logout()">Sair</button>
 </header>
 
-<section>
-
-  <div class="card">
-    <h2>Saldo Livre</h2>
-    <p id="saldo">Carregando...</p>
+<main>
+  <div class="box">
+    <h3>Bem-vindo 👋</h3>
+    <p>Email do usuário:</p>
+    <strong id="userEmail">Carregando...</strong>
   </div>
+</main>
 
-  <div class="card">
-    <h2>Plano B Ativo</h2>
-    <p id="plano">Nenhum plano ativo</p>
-  </div>
-
-  <div class="card">
-    <h2>Entrar no Plano B</h2>
-    <input type="number" id="valorPlano" placeholder="Valor para investir">
-    <button onclick="entrarPlano()">Entrar no Plano</button>
-  </div>
-
-  <div class="card">
-    <h2>Histórico</h2>
-    <ul id="historico"></ul>
-  </div>
-
-</section>
-
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../supabase.js"></script>
-<script src="painel.js"></script>
+<script src="../logout.js"></script>
+
+<script>
+  async function protegerPainel() {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      window.location.href = "../auth/login.html";
+      return;
+    }
+
+    document.getElementById("userEmail").innerText =
+      session.user.email;
+  }
+
+  protegerPainel();
+</script>
+
 </body>
-</html>
+                               </html>
