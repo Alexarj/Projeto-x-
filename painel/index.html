@@ -2,19 +2,18 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Painel | Projeto X</title>
+  <title>Painel do Usuário | Projeto X</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #0f172a;
+      background: #020617;
       color: #e5e7eb;
     }
 
     header {
-      background: #020617;
+      background: #0f172a;
       padding: 20px;
       display: flex;
       justify-content: space-between;
@@ -25,24 +24,31 @@
       padding: 30px;
     }
 
+    .box {
+      background: #020617;
+      border: 1px solid #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 600px;
+      margin-bottom: 20px;
+    }
+
     button {
-      padding: 10px 16px;
+      padding: 12px 18px;
       border: none;
       border-radius: 8px;
       background: #dc2626;
       color: white;
       cursor: pointer;
+      font-size: 15px;
     }
 
-    .box {
-      background: #020617;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 600px;
+    .msg {
+      margin-top: 10px;
+      font-size: 14px;
     }
   </style>
 </head>
-
 <body>
 
 <header>
@@ -52,32 +58,52 @@
 
 <main>
   <div class="box">
-    <h3>Bem-vindo 👋</h3>
-    <p>Email do usuário:</p>
-    <strong id="userEmail">Carregando...</strong>
+    <h3>Bem-vindo(a), <span id="nomeUsuario">Usuário</span></h3>
+    <p>Seu saldo atual: <strong>R$ <span id="saldo">0</span></strong></p>
+  </div>
+
+  <div class="box">
+    <h3>Informações do Sistema</h3>
+    <p>Aqui você verá seu saldo atualizado automaticamente após o trader encerrar o dia.</p>
   </div>
 </main>
 
-<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../supabase.js"></script>
 <script src="../logout.js"></script>
 
 <script>
-  async function protegerPainel() {
-    const { data: { session } } = await supabase.auth.getSession();
+async function carregarPainel() {
+  const { data: { session } } = await supabase.auth.getSession();
 
-    if (!session) {
-      window.location.href = "../auth/login.html";
-      return;
-    }
-
-    document.getElementById("userEmail").innerText =
-      session.user.email;
+  if (!session) {
+    window.location.href = "../auth/login.html";
+    return;
   }
 
-  protegerPainel();
+  const userEmail = session.user.email;
+
+  // Buscar dados do usuário no Supabase
+  const { data: usuario, error } = await supabase
+    .from("users")
+    .select("nome, saldo")
+    .eq("email", userEmail)
+    .single();
+
+  if (error || !usuario) {
+    document.getElementById("nomeUsuario").innerText = "Usuário";
+    document.getElementById("saldo").innerText = "0";
+    console.error(error);
+    return;
+  }
+
+  document.getElementById("nomeUsuario").innerText = usuario.nome || usuario.email;
+  document.getElementById("saldo").innerText = usuario.saldo.toFixed(2);
+}
+
+// Carrega painel ao abrir a página
+carregarPainel();
 </script>
 
 </body>
-                               </html>
+</html>
