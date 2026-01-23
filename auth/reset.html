@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Recuperar Senha | Projeto X</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #020617, #0f172a);
+  color: #e5e7eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.box {
+  background: #020617;
+  padding: 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 380px;
+}
+input, button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: none;
+}
+button {
+  background: #2563eb;
+  color: white;
+}
+.msg {
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+<div class="box">
+  <h2>Recuperar Senha</h2>
+
+  <input type="email" id="email" placeholder="Digite seu email">
+  <button onclick="reset()">Enviar link</button>
+
+  <div class="msg" id="msg"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
+const SUPABASE_ANON_KEY = "SUA-ANON-KEY";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function reset() {
+  const email = document.getElementById("email").value;
+  const msg = document.getElementById("msg");
+
+  msg.innerText = "Enviando email...";
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + "/auth/login.html"
+  });
+
+  if (error) {
+    msg.innerText = error.message;
+    msg.style.color = "red";
+  } else {
+    msg.innerText = "Email enviado! Verifique sua caixa de entrada.";
+    msg.style.color = "lightgreen";
+  }
+}
+</script>
+</body>
+    </html>
