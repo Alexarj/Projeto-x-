@@ -23,6 +23,12 @@ input { width: 100%; padding:10px; margin-top:10px; border-radius:6px; border:no
 </header>
 
 <div class="box">
+  <h3>Ativar Pacote Mensal - R$19,90</h3>
+  <button onclick="ativarPacote()">Comprar / Ativar Pacote</button>
+  <div class="msg" id="msgPacote"></div>
+</div>
+
+<div class="box">
   <h3>Alertas de hoje (até 3)</h3>
   <ul id="alertas"></ul>
 </div>
@@ -31,12 +37,14 @@ input { width: 100%; padding:10px; margin-top:10px; border-radius:6px; border:no
   <h3>Criar novo alerta (apenas trader/admin)</h3>
   <input type="text" id="novo_alerta" placeholder="Digite o alerta"/>
   <button onclick="criarAlerta()">Enviar Alerta</button>
-  <div class="msg" id="msg"></div>
+  <div class="msg" id="msgAlerta"></div>
 </div>
 
 <script src="../supabase.js"></script>
 <script src="../logout.js"></script>
 <script src="alertas.js"></script>
+<script src="plano_a.js"></script>
+
 <script>
 // Substitua pelo ID/email do usuário logado
 const usuarioAtual = "USUARIO_ATUAL";
