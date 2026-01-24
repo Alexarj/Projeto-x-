@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel VIP - Plano A</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family: Arial; background: #020617; color: #e5e7eb; margin:0; padding:20px; }
+header { display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:15px; border-radius:8px; }
+button { padding:10px 15px; border:none; border-radius:6px; cursor:pointer; background:#16a34a; color:white; }
+.box { background:#020617; padding:20px; border-radius:12px; margin-top:20px; }
+ul { list-style:none; padding:0; }
+li { padding:5px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h2>Painel VIP - Plano A Mensal</h2>
+  <button onclick="logout()">Sair</button>
+</header>
+
+<div class="box">
+  <h3>Alertas de hoje (até 3)</h3>
+  <ul id="alertas"></ul>
+</div>
+
+<div class="box">
+  <h3>Criar novo alerta (apenas admin/trader)</h3>
+  <input type="text" id="novo_alerta" placeholder="Digite o alerta"/>
+  <button onclick="criarAlerta()">Enviar Alerta</button>
+  <div id="msg"></div>
+</div>
+
+<script src="../supabase.js"></script>
+<script src="../logout.js"></script>
+<script src="alertas.js"></script>
+
+<script>
+const usuarioAtual = "USUARIO_ATUAL"; // substitua pelo ID/email do usuário logado
+
+// Carrega alertas ao abrir
+carregarAlertas(usuarioAtual);
+</script>
+
+</body>
+</html>
