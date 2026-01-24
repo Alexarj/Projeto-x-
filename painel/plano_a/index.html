@@ -11,12 +11,14 @@ button { padding:10px 15px; border:none; border-radius:6px; cursor:pointer; back
 .box { background:#020617; padding:20px; border-radius:12px; margin-top:20px; }
 ul { list-style:none; padding:0; }
 li { padding:5px 0; }
+input { width: 100%; padding:10px; margin-top:10px; border-radius:6px; border:none; }
+.msg { margin-top:10px; font-size:14px; }
 </style>
 </head>
 <body>
 
 <header>
-  <h2>Painel VIP - Plano A Mensal</h2>
+  <h2>Painel VIP - Plano A</h2>
   <button onclick="logout()">Sair</button>
 </header>
 
@@ -26,18 +28,18 @@ li { padding:5px 0; }
 </div>
 
 <div class="box">
-  <h3>Criar novo alerta (apenas admin/trader)</h3>
+  <h3>Criar novo alerta (apenas trader/admin)</h3>
   <input type="text" id="novo_alerta" placeholder="Digite o alerta"/>
   <button onclick="criarAlerta()">Enviar Alerta</button>
-  <div id="msg"></div>
+  <div class="msg" id="msg"></div>
 </div>
 
 <script src="../supabase.js"></script>
 <script src="../logout.js"></script>
 <script src="alertas.js"></script>
-
 <script>
-const usuarioAtual = "USUARIO_ATUAL"; // substitua pelo ID/email do usuário logado
+// Substitua pelo ID/email do usuário logado
+const usuarioAtual = "USUARIO_ATUAL";
 
 // Carrega alertas ao abrir
 carregarAlertas(usuarioAtual);
