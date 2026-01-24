@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Plano B | Projeto X</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 20px;
+    }
+    .box {
+      background: #0f172a;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      max-width: 500px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+    }
+    button {
+      background: #16a34a;
+      color: white;
+      cursor: pointer;
+    }
+    .msg {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>Plano B - Moeda X</h2>
+  <p>Lucro esperado: 70% para você, 30% para o trader</p>
+  <p>Risco: você pode perder parte do valor investido</p>
+
+  <input type="number" id="valorDeposito" placeholder="Digite o valor para participar" />
+  <button onclick="assumirRisco()">Assumir Risco</button>
+  <div class="msg" id="msgRisco"></div>
+</div>
+
+<div class="box">
+  <h3>Encerramento do Dia</h3>
+  <input type="number" id="lucroDia" placeholder="Digite o lucro do trader (%)" />
+  <button onclick="encerrarDia()">Encerrar Dia</button>
+  <div class="msg" id="msgDia"></div>
+</div>
+
+<!-- Supabase -->
+<script src="../supabase.js"></script>
+
+<script>
+const userId = "USUARIO_ATUAL"; // substituir pelo ID do usuário logado
+
+async function assumirRisco() {
+  const valor = parseFloat(document.getElementById("valorDeposito").value);
+  const msg = document.getElementById("msgRisco");
+
+  if (!valor || valor <= 0) {
+    msg.innerText = "Digite um valor válido!";
+    msg.style.color = "red";
+    return;
+  }
+
+  // Registrar no Supabase
+  const { error } = await supabase
+    .from("plano_b")
+    .insert({ usuario: userId, valor, ativo: true });
+
+  if (error) {
+    msg.innerText = "Erro ao registrar: " + error.message;
+    msg.style.color = "red";
+  } else {
+    msg.innerText = `Você assumiu o risco com ${valor} Moeda X!`;
+    msg.style.color = "green";
+  }
+}
+
+async function encerrarDia() {
+  const lucroPercent = parseFloat(document.getElementById("lucroDia").value);
+  const msg = document.getElementById("msgDia");
+
+  if (isNaN(lucroPercent)) {
+    msg.innerText = "Informe um valor de lucro válido!";
+    msg.style.color = "red";
+    return;
+  }
+
+  // Buscar todos usuários ativos
+  const { data: usuarios, error } = await supabase
+    .from("plano_b")
+    .select("*")
+    .eq("ativo", true);
+
+  if (error) {
+    msg.innerText = "Erro ao buscar usuários: " + error.message;
+    msg.style.color = "red";
+    return;
+  }
+
+  let resumo = "";
+  for (let u of usuarios) {
+    const lucroUsuario = u.valor * (lucroPercent / 100) * 0.7;
+    const lucroTrader = u.valor * (lucroPercent / 100) * 0.3;
+
+    // Atualiza saldo no Supabase
+    await supabase
+      .from("plano_b")
+      .update({ ativo: false, lucro_usuario: lucroUsuario, lucro_trader: lucroTrader })
+      .eq("id", u.id);
+
+    resumo += `Usuário ${u.usuario}: +${lucroUsuario.toFixed(2)}, Trader: +${lucroTrader.toFixed(2)}\n`;
+  }
+
+  msg.innerText = "Dia encerrado!\n" + resumo;
+  msg.style.color = "lightgreen";
+}
+</script>
+</body>
+</html>
