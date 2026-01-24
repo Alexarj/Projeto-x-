@@ -10,9 +10,10 @@ header { display:flex; justify-content:space-between; align-items:center; backgr
 button { padding:10px 15px; border:none; border-radius:6px; cursor:pointer; background:#16a34a; color:white; }
 .box { background:#020617; padding:20px; border-radius:12px; margin-top:20px; }
 ul { list-style:none; padding:0; }
-li { padding:5px 0; }
-input { width: 100%; padding:10px; margin-top:10px; border-radius:6px; border:none; }
+li { padding:10px; border-bottom:1px solid #1e293b; }
+input, select { width: 100%; padding:10px; margin-top:10px; border-radius:6px; border:none; }
 .msg { margin-top:10px; font-size:14px; }
+.alert-risco { color: orange; }
 </style>
 </head>
 <body>
@@ -35,7 +36,11 @@ input { width: 100%; padding:10px; margin-top:10px; border-radius:6px; border:no
 
 <div class="box">
   <h3>Criar novo alerta (apenas trader/admin)</h3>
-  <input type="text" id="novo_alerta" placeholder="Digite o alerta"/>
+  <input type="text" id="jogo" placeholder="Jogo: Time A x Time B"/>
+  <input type="time" id="horario_inicio"/>
+  <input type="text" id="oportunidade" placeholder="Oportunidade: LAY ou BACK"/>
+  <input type="text" id="odd" placeholder="Odd sugerida"/>
+  <input type="text" id="aviso_risco" placeholder="Aviso de risco"/>
   <button onclick="criarAlerta()">Enviar Alerta</button>
   <div class="msg" id="msgAlerta"></div>
 </div>
@@ -46,10 +51,7 @@ input { width: 100%; padding:10px; margin-top:10px; border-radius:6px; border:no
 <script src="plano_a.js"></script>
 
 <script>
-// Substitua pelo ID/email do usuário logado
 const usuarioAtual = "USUARIO_ATUAL";
-
-// Carrega alertas ao abrir
 carregarAlertas(usuarioAtual);
 </script>
 
