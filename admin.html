@@ -2,122 +2,78 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Projeto X – Login</title>
+  <title>Admin – Liberação de Usuários</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(135deg, #020617, #0f172a);
-      color: #e5e7eb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    .login-box {
-      background: #020617;
-      padding: 30px;
-      border-radius: 10px;
-      width: 100%;
-      max-width: 360px;
-      box-shadow: 0 0 20px rgba(0,0,0,.5);
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      border: none;
-      background: #0f172a;
-      color: #fff;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      background: #2563eb;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #1d4ed8;
-    }
-
-    .links {
-      margin-top: 15px;
-      text-align: center;
-    }
-
-    .links button {
-      background: #020617;
-      border: 1px solid #2563eb;
-      margin-top: 8px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="login-box">
-  <h2>Projeto X</h2>
+<header>
+  <h1>Admin – Liberação de Usuários</h1>
+</header>
 
-  <input type="text" id="email" placeholder="Email">
-  <input type="password" id="senha" placeholder="Senha">
+<section class="card">
+  <h2>Login do Trader</h2>
+  <form id="loginForm">
+    <label for="adminEmail">Email:</label>
+    <input type="email" id="adminEmail" required>
 
-  <select id="tipo">
-    <option value="usuario">Usuário</option>
-    <option value="trader">Trader</option>
-    <option value="admin">Admin</option>
-  </select>
+    <label for="adminSenha">Senha:</label>
+    <input type="password" id="adminSenha" required>
 
-  <button onclick="login()">Entrar</button>
+    <button type="submit" class="btn">Entrar</button>
+  </form>
 
-  <div class="links">
-    <button onclick="location.href='termos.html'">Termos de Uso</button>
-    <button onclick="location.href='risco.html'">Política de Risco</button>
+  <div id="userSection" style="display:none;">
+    <h2>Buscar Usuário</h2>
+    <label for="userEmail">Email do usuário:</label>
+    <input type="email" id="userEmail" placeholder="email@usuario.com">
+    <button id="liberarBtn" class="btn">Liberar Acesso</button>
+    <p id="status"></p>
   </div>
-</div>
+</section>
 
 <script>
-function login() {
-  const email = document.getElementById("email").value;
-  const senha = document.getElementById("senha").value;
-  const tipo = document.getElementById("tipo").value;
+const loginForm = document.getElementById('loginForm');
+const userSection = document.getElementById('userSection');
+const status = document.getElementById('status');
 
-  if (!email || !senha) {
-    alert("Preencha todos os campos");
+const adminDados = {
+  email: 'trader@seuemail.com',
+  senha: '123456'
+};
+
+loginForm.addEventListener('submit', function(e){
+  e.preventDefault();
+  const email = document.getElementById('adminEmail').value;
+  const senha = document.getElementById('adminSenha').value;
+
+  if(email === adminDados.email && senha === adminDados.senha){
+    loginForm.style.display = 'none';
+    userSection.style.display = 'block';
+  } else {
+    alert('Email ou senha incorretos');
+  }
+});
+
+document.getElementById('liberarBtn').addEventListener('click', function(){
+  const userEmail = document.getElementById('userEmail').value.trim();
+  if(!userEmail){
+    alert('Digite o email do usuário');
     return;
   }
 
-  // Sessão simulada
-  const session = {
-    email: email,
-    tipo: tipo,
-    loginAt: new Date().toISOString()
-  };
-
-  localStorage.setItem("session", JSON.stringify(session));
-
-  if (tipo === "usuario") {
-    window.location.href = "usuario.html";
-  } else if (tipo === "trader") {
-    window.location.href = "trader.html";
+  let liberados = JSON.parse(localStorage.getItem('usuariosLiberados')) || [];
+  if(!liberados.includes(userEmail)){
+    liberados.push(userEmail);
+    localStorage.setItem('usuariosLiberados', JSON.stringify(liberados));
+    status.textContent = `Acesso liberado para: ${userEmail}`;
   } else {
-    window.location.href = "admin.html";
+    status.textContent = `${userEmail} já possui acesso liberado.`;
   }
-}
+
+  document.getElementById('userEmail').value = '';
+});
 </script>
 
 </body>
