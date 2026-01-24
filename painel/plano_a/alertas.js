@@ -53,7 +53,7 @@ async function criarAlerta() {
 
   const { error } = await supabase
     .from('alertas_diarios')
-    .insert({ usuario: "USUARIO_ATUAL", alerta: texto, data: hoje });
+    .insert({ usuario: usuarioAtual, alerta: texto, data: hoje });
 
   if (error) {
     msgDiv.innerText = "Erro ao enviar alerta: " + error.message;
@@ -65,5 +65,5 @@ async function criarAlerta() {
   msgDiv.innerText = "Alerta enviado!";
   msgDiv.style.color = "green";
 
-  carregarAlertas("USUARIO_ATUAL");
+  carregarAlertas(usuarioAtual);
 }
