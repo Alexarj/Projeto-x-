@@ -15,6 +15,13 @@ if(!liberados.includes(usuarioEmail)){
   alert("Acesso não liberado. Envie o comprovante e aguarde a liberação.");
   window.location.href = "pagamento.html";
 }
+
+// Registrar contador de alertas diários por usuário
+const hoje = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+let contagem = JSON.parse(localStorage.getItem('contagemAlertas')) || {};
+if(!contagem[usuarioEmail]) contagem[usuarioEmail] = {};
+if(!contagem[usuarioEmail][hoje]) contagem[usuarioEmail][hoje] = 0;
+localStorage.setItem('contagemAlertas', JSON.stringify(contagem));
 </script>
 
 <header>
@@ -30,23 +37,42 @@ const alertasContainer = document.getElementById('alertasContainer');
 let alertas = JSON.parse(localStorage.getItem('alertas')) || [];
 let agora = new Date();
 
-let alertasParaMostrar = alertas.filter(a => {
-  let inicio = new Date(a.inicio);
-  let diffHoras = (inicio - agora) / (1000 * 60 * 60);
-  return diffHoras <= 1 && diffHoras >= 0; // até 1 hora antes ou dentro da hora
+let contagem = JSON.parse(localStorage.getItem('contagemAlertas'));
+let alertasMostrados = 0;
+
+alertas.forEach(a => {
+  const inicio = new Date(a.inicio);
+  const diffHoras = (inicio - agora) / (1000 * 60 * 60);
+
+  // Mostrar alerta apenas 1 hora antes ou se faltando menos de 1 hora
+  if(diffHoras <= 1 && diffHoras >= 0){
+    // Verificar limite diário
+    if(contagem[usuarioEmail][hoje] < 3){
+      const card = document.createElement('div');
+      card.className = 'card alerta';
+      card.innerHTML = `
+        <h3>${a.jogo}</h3>
+        <p>Oportunidade: ${a.tipo}</p>
+        <p>Odds sugerida: ${a.odd}</p>
+        <p>${a.aviso}</p>
+        <p class="horario">Início: ${inicio.toLocaleString()}</p>
+      `;
+      alertasContainer.appendChild(card);
+
+      // Atualizar contador diário
+      contagem[usuarioEmail][hoje]++;
+      localStorage.setItem('contagemAlertas', JSON.stringify(contagem));
+      alertasMostrados++;
+    }
+  }
 });
 
-alertasParaMostrar.forEach(a => {
-  const card = document.createElement('div');
-  card.className = 'card alerta';
-  card.innerHTML = `
-    <h3>${a.jogo}</h3>
-    <p>Oportunidade: ${a.tipo}</p>
-    <p>Odds sugerida: ${a.odd}</p>
-    <p>${a.aviso}</p>
-  `;
-  alertasContainer.appendChild(card);
-});
+// Mensagem se não houver alertas disponíveis
+if(alertasMostrados === 0){
+  const msg = document.createElement('p');
+  msg.textContent = "Nenhum alerta disponível no momento. Confira mais tarde.";
+  alertasContainer.appendChild(msg);
+}
 </script>
 
 </body>
