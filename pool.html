@@ -81,6 +81,11 @@ const matchesTable = document.getElementById("matchesTable");
 const marketsContainer = document.getElementById("marketsContainer");
 let selectedMatch = null;
 
+// Variáveis para atualização ao vivo
+let valorAposta = 0;
+let lucroAtual = 0; 
+let atualizando = false;
+
 // Seleciona partida
 matchesTable.querySelectorAll("tr[data-match]").forEach(row=>{
   row.addEventListener("click",()=>{
@@ -110,29 +115,45 @@ function showMarkets(match){
 // Função para apostar
 window.placeBet = async function(market,type,odd){
   const inputId = type==="back"?`betBack_${market}`:`betLay_${market}`;
-  const value = parseFloat(document.getElementById(inputId).value);
-  if(isNaN(value)||value<=0){ alert("Informe valor válido"); return; }
+  valorAposta = parseFloat(document.getElementById(inputId).value);
+  if(isNaN(valorAposta)||valorAposta<=0){ alert("Informe valor válido"); return; }
 
   // Reserva saldo no pool
-  const ok = await reservarPool(value);
+  const ok = await reservarPool(valorAposta);
   if(!ok) return;
 
   // Envia aposta para Pinnacle
-  await enviarApostaPinnacle(selectedMatch, market, type, value, odd);
+  await enviarApostaPinnacle(selectedMatch, market, type, valorAposta, odd);
 
-  document.getElementById("currentBet").innerText = `R$${value}`;
+  // Começa atualização ao vivo
+  atualizando = true;
+  atualizarValorAoVivo();
 };
 
-// Encerrar aposta
+// Função para atualizar valor da aposta ao vivo
+async function atualizarValorAoVivo(){
+  if(!atualizando) return;
+
+  // Aqui você puxaria o valor real da Pinnacle
+  // Simulando variação aleatória para teste
+  lucroAtual = (Math.random()-0.5) * valorAposta * 0.1; // +/-10% flutuando
+  const valorExibido = valorAposta + lucroAtual;
+  document.getElementById("currentBet").innerText = `R$${valorExibido.toFixed(2)}`;
+
+  setTimeout(atualizarValorAoVivo, 2000); // atualiza a cada 2s
+}
+
+// Encerrar aposta com valor ao vivo
 document.getElementById("closeBet").addEventListener("click", async ()=>{
-  const result = prompt("Resultado da aposta? (lucro/perda)"); // substituir pelo resultado real
-  const lucro = result.toLowerCase() === 'lucro';
-  const valor = parseFloat(document.getElementById("currentBet").innerText.replace('R$',''));
+  atualizando = false;
 
-  await encerrarAposta(valor, lucro);
+  const valorFinal = valorAposta + lucroAtual;
+  const lucro = valorFinal > valorAposta;
+
+  await encerrarAposta(valorFinal, lucro);
+
   document.getElementById("currentBet").innerText = "R$0";
-
-  alert(`Aposta encerrada com: ${result}`);
+  alert(`Aposta encerrada com valor final: R$${valorFinal.toFixed(2)} (${lucro?"Lucro":"Perda"})`);
 });
 
 </script>
