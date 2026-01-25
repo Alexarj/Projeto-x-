@@ -1,73 +1,58 @@
 // poolSupabase.js
-import { supabase } from './supabaseConfig.js';
+import { createClient } from '@supabase/supabase-js';
 
-// Função para reservar saldo proporcional do pool
-export async function reservarPool(valorTotal) {
-  // Pega saldo disponível
-  const { data: poolData, error } = await supabase
+// Conexão Supabase
+const supabaseUrl = 'https://sfaqtbhhbbvkfmgsryya.supabase.co';
+const supabaseKey = 'sb_secret_R5nGU'; // usar environment variable em produção
+export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Obter saldo total do pool
+export async function getPool(){
+  const { data, error } = await supabase
     .from('pool')
     .select('*')
     .eq('id', 1)
     .single();
 
-  if (error) { console.error(error); return false; }
+  if(error) { console.error(error); return null; }
+  return data;
+}
 
-  if (poolData.saldo < valorTotal) {
-    alert("Saldo insuficiente no pool!");
+// Reservar saldo proporcional
+export async function reservarPool(valor){
+  const pool = await getPool();
+  if(!pool || pool.saldo < valor){
+    alert("Saldo insuficiente no pool");
     return false;
   }
 
-  // Atualiza saldo bloqueado
-  const { error:updateError } = await supabase
+  const novoSaldo = pool.saldo - valor;
+  const { error } = await supabase
     .from('pool')
-    .update({ saldo_bloqueado: poolData.saldo_bloqueado + valorTotal })
+    .update({ saldo: novoSaldo })
     .eq('id', 1);
 
-  if (updateError) { console.error(updateError); return false; }
-
+  if(error) { console.error(error); alert("Erro ao reservar pool"); return false; }
   return true;
 }
 
-// Função para liberar o saldo do pool e calcular lucro/perda
-export async function encerrarAposta(valor, lucro=true) {
-  const { data: poolData, error } = await supabase
-    .from('pool')
-    .select('*')
-    .eq('id',1)
-    .single();
-
-  if (error) { console.error(error); return; }
-
-  let saldoAtual = poolData.saldo;
-  let saldoBloqueado = poolData.saldo_bloqueado;
-
-  // Calcula lucro 70/30 ou perda proporcional
-  let ajuste = 0;
-  if (lucro) {
-    ajuste = valor * 0.7; // 70% para usuários
-  } else {
-    ajuste = -valor; // perda total dos usuários
+// Encerrar aposta e distribuir lucro/perda
+export async function encerrarAposta(valorFinal, lucro){
+  const pool = await getPool();
+  let novoSaldo;
+  if(lucro){
+    // 70% trader, 30% usuários
+    const usuarios = valorFinal * 0.3;
+    novoSaldo = pool.saldo + usuarios;
+  }else{
+    // perda: apenas usuários impactados
+    novoSaldo = pool.saldo;
   }
 
-  const { error:updateError } = await supabase
+  const { error } = await supabase
     .from('pool')
-    .update({ 
-      saldo: saldoAtual + ajuste,
-      saldo_bloqueado: saldoBloqueado - valor
-    })
-    .eq('id',1);
+    .update({ saldo: novoSaldo })
+    .eq('id', 1);
 
-  if (updateError) console.error(updateError);
+  if(error) console.error(error);
 }
-
-// Função para obter saldo do pool
-export async function getPool() {
-  const { data, error } = await supabase
-    .from('pool')
-    .select('*')
-    .eq('id',1)
-    .single();
-
-  if (error) { console.error(error); return null; }
-  return data;
-    }
