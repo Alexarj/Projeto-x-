@@ -11,7 +11,6 @@
 <script>
 const usuarioEmail = prompt("Digite seu email cadastrado para acessar os alertas:");
 const liberados = JSON.parse(localStorage.getItem('usuariosLiberados')) || [];
-
 if(!liberados.includes(usuarioEmail)){
   alert("Acesso não liberado. Envie o comprovante e aguarde a liberação.");
   window.location.href = "pagamento.html";
@@ -20,29 +19,35 @@ if(!liberados.includes(usuarioEmail)){
 
 <header>
   <h1>Plano A – Alertas Esportivos</h1>
-  <p>Consistência acima de volume</p>
 </header>
 
-<section class="card">
-  <h2>O que você recebe</h2>
-  <ul>
-    <li>✔ Até 3 alertas esportivos por dia</li>
-    <li>✔ Análises pré-jogo</li>
-    <li>✔ Mercados BACK ou LAY</li>
-    <li>✔ Odds de referência</li>
-    <li>✔ Acesso mensal à área restrita</li>
-  </ul>
-
-  <div class="price">
-    R$ 19,90 / mês
-  </div>
-
-  <p class="warning">
-    Produto informativo e educacional.  
-    Não há garantia de lucro.  
-    Apostas esportivas envolvem riscos.
-  </p>
+<section id="alertasContainer" class="card">
+  <h2>Alertas Disponíveis</h2>
 </section>
+
+<script>
+const alertasContainer = document.getElementById('alertasContainer');
+let alertas = JSON.parse(localStorage.getItem('alertas')) || [];
+let agora = new Date();
+
+let alertasParaMostrar = alertas.filter(a => {
+  let inicio = new Date(a.inicio);
+  let diffHoras = (inicio - agora) / (1000 * 60 * 60);
+  return diffHoras <= 1 && diffHoras >= 0; // até 1 hora antes ou dentro da hora
+});
+
+alertasParaMostrar.forEach(a => {
+  const card = document.createElement('div');
+  card.className = 'card alerta';
+  card.innerHTML = `
+    <h3>${a.jogo}</h3>
+    <p>Oportunidade: ${a.tipo}</p>
+    <p>Odds sugerida: ${a.odd}</p>
+    <p>${a.aviso}</p>
+  `;
+  alertasContainer.appendChild(card);
+});
+</script>
 
 </body>
 </html>
