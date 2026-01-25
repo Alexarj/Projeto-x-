@@ -2,31 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Plano B - Pool</title>
-<script src="pool.js"></script>
-<script src="relatorios.js"></script>
+<title>Plano B - Pool Real</title>
+<script type="module" src="supabaseConfig.js"></script>
+<script type="module" src="poolSupabase.js"></script>
 </head>
 <body>
-<h1>Plano B - Pool</h1>
+<h1>Plano B - Pool Real</h1>
 
-<button onclick="adicionarUsuario(prompt('Nome'), parseFloat(prompt('Depósito inicial')))">
+<button onclick="adicionarUsuario(prompt('Nome'), prompt('Email'), parseFloat(prompt('Depósito inicial')))">
   Adicionar Usuário
 </button>
 
-<button onclick="registrarTrade(prompt('Evento'), parseFloat(prompt('Valor trade')), parseFloat(prompt('Resultado % (ex: 0.2 ou -0.15)')))">
-  Registrar Trade
-</button>
-
-<button onclick="console.table(gerarRelatorioUsuarios())">
-  Relatório Usuários
-</button>
-
-<button onclick="console.table(gerarRelatorioTrades())">
-  Relatório Trades
-</button>
-
-<button onclick="console.log(gerarRelatorioTrader())">
-  Relatório Trader
-</button>
-</body>
-</html>
+<button onclick="registrarTrade(prompt('Evento
