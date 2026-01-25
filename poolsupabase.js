@@ -1,59 +1,73 @@
 // poolSupabase.js
 import { supabase } from './supabaseConfig.js';
-import { apostarEvento, atualizarSaldo, mostrarApostas } from './poolPinnacle.js';
 
-// Adicionar usuário ao pool
-export async function adicionarUsuario(nome, email, depositoInicial){
-  if(!nome || !email || isNaN(depositoInicial)){
-    alert('Preencha todos os campos corretamente!');
-    return;
+// Função para reservar saldo proporcional do pool
+export async function reservarPool(valorTotal) {
+  // Pega saldo disponível
+  const { data: poolData, error } = await supabase
+    .from('pool')
+    .select('*')
+    .eq('id', 1)
+    .single();
+
+  if (error) { console.error(error); return false; }
+
+  if (poolData.saldo < valorTotal) {
+    alert("Saldo insuficiente no pool!");
+    return false;
   }
 
-  const { data, error } = await supabase
-    .from('usuarios')
-    .insert([{ nome, email, saldo: depositoInicial, criado_em: new Date() }]);
-  
-  if(error){
-    console.error(error);
-    alert('Erro ao adicionar usuário: ' + error.message);
+  // Atualiza saldo bloqueado
+  const { error:updateError } = await supabase
+    .from('pool')
+    .update({ saldo_bloqueado: poolData.saldo_bloqueado + valorTotal })
+    .eq('id', 1);
+
+  if (updateError) { console.error(updateError); return false; }
+
+  return true;
+}
+
+// Função para liberar o saldo do pool e calcular lucro/perda
+export async function encerrarAposta(valor, lucro=true) {
+  const { data: poolData, error } = await supabase
+    .from('pool')
+    .select('*')
+    .eq('id',1)
+    .single();
+
+  if (error) { console.error(error); return; }
+
+  let saldoAtual = poolData.saldo;
+  let saldoBloqueado = poolData.saldo_bloqueado;
+
+  // Calcula lucro 70/30 ou perda proporcional
+  let ajuste = 0;
+  if (lucro) {
+    ajuste = valor * 0.7; // 70% para usuários
   } else {
-    console.log('Usuário adicionado:', data);
-    alert('Usuário adicionado com sucesso!');
-  }
-}
-
-// Registrar trade no pool
-export async function registrarTrade(evento, valorTrade, resultadoPercentual){
-  if(!evento || isNaN(valorTrade) || isNaN(resultadoPercentual)){
-    alert('Preencha todos os campos corretamente!');
-    return;
+    ajuste = -valor; // perda total dos usuários
   }
 
-  // 1️⃣ Preparar apostas proporcionais
-  const apostas = await apostarEvento(evento, valorTrade, 'back');
-  mostrarApostas(apostas); // debug / conferência
+  const { error:updateError } = await supabase
+    .from('pool')
+    .update({ 
+      saldo: saldoAtual + ajuste,
+      saldo_bloqueado: saldoBloqueado - valor
+    })
+    .eq('id',1);
 
-  // 2️⃣ Atualizar saldo proporcional de cada usuário
-  await atualizarSaldo(resultadoPercentual, valorTrade);
-
-  // 3️⃣ Registrar trade no histórico do Supabase
-  const { data: tradeData, error: tradeError } = await supabase
-    .from('pool_trades')
-    .insert([{ evento, valor: valorTrade, resultado: resultadoPercentual, timestamp: new Date() }]);
-
-  if(tradeError) console.error('Erro ao registrar trade:', tradeError);
-  else console.log('Trade registrado com sucesso:', tradeData);
+  if (updateError) console.error(updateError);
 }
 
-// Relatórios
-export async function relatorioUsuarios(){
-  const { data, error } = await supabase.from('usuarios').select('*');
-  if(error){ console.error(error); return; }
-  console.table(data);
-}
+// Função para obter saldo do pool
+export async function getPool() {
+  const { data, error } = await supabase
+    .from('pool')
+    .select('*')
+    .eq('id',1)
+    .single();
 
-export async function relatorioTrades(){
-  const { data, error } = await supabase.from('pool_trades').select('*');
-  if(error){ console.error(error); return; }
-  console.table(data);
+  if (error) { console.error(error); return null; }
+  return data;
     }
