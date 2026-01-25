@@ -86,15 +86,7 @@ let valorAposta = 0;
 let lucroAtual = 0; 
 let atualizando = false;
 
-// Seleciona partida
-matchesTable.querySelectorAll("tr[data-match]").forEach(row=>{
-  row.addEventListener("click",()=>{
-    selectedMatch = row.getAttribute("data-match");
-    showMarkets(selectedMatch);
-  });
-});
-
-// Mostra mercados
+// Função para mostrar mercados
 function showMarkets(match){
   marketsContainer.innerHTML = "";
   marketsData[match].forEach(m=>{
@@ -126,22 +118,47 @@ window.placeBet = async function(market,type,odd){
   await enviarApostaPinnacle(selectedMatch, market, type, valorAposta, odd);
 
   // Começa atualização ao vivo
+  lucroAtual = 0;
   atualizando = true;
   atualizarValorAoVivo();
 };
 
-// Função para atualizar valor da aposta ao vivo
+// Atualiza valor da aposta ao vivo
 async function atualizarValorAoVivo(){
   if(!atualizando) return;
 
-  // Aqui você puxaria o valor real da Pinnacle
-  // Simulando variação aleatória para teste
-  lucroAtual = (Math.random()-0.5) * valorAposta * 0.1; // +/-10% flutuando
+  // Simulação de lucro/perda (substituir por API real Pinnacle)
+  lucroAtual = (Math.random()-0.5) * valorAposta * 0.1;
   const valorExibido = valorAposta + lucroAtual;
   document.getElementById("currentBet").innerText = `R$${valorExibido.toFixed(2)}`;
 
-  setTimeout(atualizarValorAoVivo, 2000); // atualiza a cada 2s
+  setTimeout(atualizarValorAoVivo, 2000);
 }
+
+// Atualiza odds ao vivo
+async function atualizarOddsAoVivo() {
+  if(!selectedMatch) return;
+
+  // Simulação de variação de odds
+  marketsData[selectedMatch].forEach(m=>{
+    const flutuacao = (Math.random() - 0.5) * 0.05; // +/-5%
+    m.back = (m.back * (1 + flutuacao)).toFixed(2);
+    m.lay = (m.lay * (1 + flutuacao)).toFixed(2);
+  });
+
+  showMarkets(selectedMatch);
+
+  setTimeout(atualizarOddsAoVivo, 2000); // atualiza a cada 2s
+}
+
+// Seleciona partida e inicia odds ao vivo
+matchesTable.querySelectorAll("tr[data-match]").forEach(row=>{
+  row.addEventListener("click",()=>{
+    selectedMatch = row.getAttribute("data-match");
+    showMarkets(selectedMatch);
+    atualizarOddsAoVivo();
+  });
+});
 
 // Encerrar aposta com valor ao vivo
 document.getElementById("closeBet").addEventListener("click", async ()=>{
@@ -155,7 +172,6 @@ document.getElementById("closeBet").addEventListener("click", async ()=>{
   document.getElementById("currentBet").innerText = "R$0";
   alert(`Aposta encerrada com valor final: R$${valorFinal.toFixed(2)} (${lucro?"Lucro":"Perda"})`);
 });
-
 </script>
 
 </body>
