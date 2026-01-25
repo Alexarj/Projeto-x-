@@ -9,6 +9,7 @@
 <body>
 
 <script>
+// Login do usuário
 const usuarioEmail = prompt("Digite seu email cadastrado para acessar os alertas:");
 const liberados = JSON.parse(localStorage.getItem('usuariosLiberados')) || [];
 if(!liberados.includes(usuarioEmail)){
@@ -16,11 +17,11 @@ if(!liberados.includes(usuarioEmail)){
   window.location.href = "pagamento.html";
 }
 
-// Registrar contador de alertas diários por usuário
-const hoje = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+// Contador diário de alertas por usuário
+const hojeData = new Date().toISOString().slice(0,10);
 let contagem = JSON.parse(localStorage.getItem('contagemAlertas')) || {};
 if(!contagem[usuarioEmail]) contagem[usuarioEmail] = {};
-if(!contagem[usuarioEmail][hoje]) contagem[usuarioEmail][hoje] = 0;
+if(!contagem[usuarioEmail][hojeData]) contagem[usuarioEmail][hojeData] = 0;
 localStorage.setItem('contagemAlertas', JSON.stringify(contagem));
 </script>
 
@@ -32,22 +33,59 @@ localStorage.setItem('contagemAlertas', JSON.stringify(contagem));
   <h2>Alertas Disponíveis</h2>
 </section>
 
+<section id="relatorioUsuario" class="card">
+  <h2>Meu Relatório Diário</h2>
+  <table border="1" width="100%">
+    <thead>
+      <tr>
+        <th>Jogo</th>
+        <th>Tipo</th>
+        <th>Odd</th>
+        <th>Início</th>
+        <th>Aviso</th>
+        <th>Visualizado em</th>
+      </tr>
+    </thead>
+    <tbody id="relatorioUsuarioBody"></tbody>
+  </table>
+</section>
+
+<section id="alertasPerdidos" class="card">
+  <h2>Alertas Perdidos Hoje</h2>
+  <table border="1" width="100%">
+    <thead>
+      <tr>
+        <th>Jogo</th>
+        <th>Tipo</th>
+        <th>Odd</th>
+        <th>Início</th>
+        <th>Aviso</th>
+      </tr>
+    </thead>
+    <tbody id="alertasPerdidosBody"></tbody>
+  </table>
+</section>
+
 <script>
 const alertasContainer = document.getElementById('alertasContainer');
-let alertas = JSON.parse(localStorage.getItem('alertas')) || [];
-let agora = new Date();
+const relatorioUsuarioBody = document.getElementById('relatorioUsuarioBody');
+const alertasPerdidosBody = document.getElementById('alertasPerdidosBody');
 
+let agora = new Date();
+let alertas = JSON.parse(localStorage.getItem('alertas')) || [];
+let relatorio = JSON.parse(localStorage.getItem('relatorioAlertas')) || [];
 let contagem = JSON.parse(localStorage.getItem('contagemAlertas'));
 let alertasMostrados = 0;
 
+// Exibir alertas ativos e registrar visualização
 alertas.forEach(a => {
   const inicio = new Date(a.inicio);
-  const diffHoras = (inicio - agora) / (1000 * 60 * 60);
+  const diffHoras = (inicio - agora) / (1000 * 60 * 60); // horas antes
+  const diffMinutosDepois = (agora - inicio) / (1000 * 60); // minutos depois
 
-  // Mostrar alerta apenas 1 hora antes ou se faltando menos de 1 hora
-  if(diffHoras <= 1 && diffHoras >= 0){
-    // Verificar limite diário
-    if(contagem[usuarioEmail][hoje] < 3){
+  if((diffHoras <= 1 && diffHoras >= 0) || (diffMinutosDepois >= 0 && diffMinutosDepois <= 30)){
+    if(contagem[usuarioEmail][hojeData] < 3){
+      // Card do alerta
       const card = document.createElement('div');
       card.className = 'card alerta';
       card.innerHTML = `
@@ -60,19 +98,64 @@ alertas.forEach(a => {
       alertasContainer.appendChild(card);
 
       // Atualizar contador diário
-      contagem[usuarioEmail][hoje]++;
+      contagem[usuarioEmail][hojeData]++;
       localStorage.setItem('contagemAlertas', JSON.stringify(contagem));
       alertasMostrados++;
+
+      // Registrar no relatório de alertas visualizados
+      relatorio.push({
+        usuario: usuarioEmail,
+        jogo: a.jogo,
+        tipo: a.tipo,
+        odd: a.odd,
+        inicio: a.inicio,
+        aviso: a.aviso,
+        visualizado: new Date().toISOString()
+      });
+      localStorage.setItem('relatorioAlertas', JSON.stringify(relatorio));
     }
   }
 });
 
-// Mensagem se não houver alertas disponíveis
+// Mensagem se nenhum alerta ativo
 if(alertasMostrados === 0){
   const msg = document.createElement('p');
   msg.textContent = "Nenhum alerta disponível no momento. Confira mais tarde.";
   alertasContainer.appendChild(msg);
 }
+
+// Relatório diário do usuário
+relatorio.filter(r => r.usuario === usuarioEmail && r.visualizado.slice(0,10) === hojeData)
+  .forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.jogo}</td>
+      <td>${r.tipo}</td>
+      <td>${r.odd}</td>
+      <td>${new Date(r.inicio).toLocaleString()}</td>
+      <td>${r.aviso}</td>
+      <td>${new Date(r.visualizado).toLocaleString()}</td>
+    `;
+    relatorioUsuarioBody.appendChild(tr);
+  });
+
+// Relatório de alertas perdidos
+const alertasDoDia = alertas.filter(a => a.inicio.slice(0,10) === hojeData);
+const alertasPerdidos = alertasDoDia.filter(a => 
+  !relatorio.some(r => r.usuario === usuarioEmail && r.jogo === a.jogo && r.inicio === a.inicio)
+);
+
+alertasPerdidos.forEach(a => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${a.jogo}</td>
+    <td>${a.tipo}</td>
+    <td>${a.odd}</td>
+    <td>${new Date(a.inicio).toLocaleString()}</td>
+    <td>${a.aviso}</td>
+  `;
+  alertasPerdidosBody.appendChild(tr);
+});
 </script>
 
 </body>
