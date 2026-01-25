@@ -57,7 +57,10 @@
 
 </div>
 
-<script>
+<script type="module">
+import { reservarPool, encerrarAposta, getPool } from './poolSupabase.js';
+import { enviarApostaPinnacle, atualizarOdds } from './poolPinnacle.js';
+
 // Dados simulados de mercados
 const marketsData = {
   "Flamengo x Palmeiras":[
@@ -93,10 +96,10 @@ function showMarkets(match){
     const div = document.createElement("div");
     div.innerHTML = `
       <b>${m.market}</b><br>
-      Back: ${m.back} <input type="number" class="inline-input" id="betBack" placeholder="Valor">
+      Back: ${m.back} <input type="number" class="inline-input" id="betBack_${m.market}" placeholder="Valor">
       <button onclick="placeBet('${m.market}','back',${m.back})">Confirmar</button>
       <br>
-      Lay: ${m.lay} <input type="number" class="inline-input" id="betLay" placeholder="Valor">
+      Lay: ${m.lay} <input type="number" class="inline-input" id="betLay_${m.market}" placeholder="Valor">
       <button onclick="placeBet('${m.market}','lay',${m.lay})">Confirmar</button>
       <hr>
     `;
@@ -105,21 +108,31 @@ function showMarkets(match){
 }
 
 // Função para apostar
-function placeBet(market,type,odd){
-  const inputId = type==="back"?"betBack":"betLay";
+window.placeBet = async function(market,type,odd){
+  const inputId = type==="back"?`betBack_${market}`:`betLay_${market}`;
   const value = parseFloat(document.getElementById(inputId).value);
   if(isNaN(value)||value<=0){ alert("Informe valor válido"); return; }
-  alert(`Aposta enviada: ${market} ${type.toUpperCase()} R$${value} @${odd}`);
+
+  // Reserva saldo no pool
+  const ok = await reservarPool(value);
+  if(!ok) return;
+
+  // Envia aposta para Pinnacle
+  await enviarApostaPinnacle(selectedMatch, market, type, value, odd);
+
   document.getElementById("currentBet").innerText = `R$${value}`;
-  // Aqui integra poolSupabase.js e API Pinnacle
-}
+};
 
 // Encerrar aposta
-document.getElementById("closeBet").addEventListener("click",()=>{
-  const result = prompt("Resultado da aposta? (lucro/perda)"); // aqui simula o retorno
-  alert(`Aposta encerrada com: ${result}`);
+document.getElementById("closeBet").addEventListener("click", async ()=>{
+  const result = prompt("Resultado da aposta? (lucro/perda)"); // substituir pelo resultado real
+  const lucro = result.toLowerCase() === 'lucro';
+  const valor = parseFloat(document.getElementById("currentBet").innerText.replace('R$',''));
+
+  await encerrarAposta(valor, lucro);
   document.getElementById("currentBet").innerText = "R$0";
-  // Aqui atualiza poolSupabase.js com lucro 70/30 ou perda apenas usuários
+
+  alert(`Aposta encerrada com: ${result}`);
 });
 
 </script>
