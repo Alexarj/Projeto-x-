@@ -2,34 +2,100 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Plano B - Pool Real</title>
+<title>Plano B - Pool Interativo</title>
 <script type="module" src="supabaseConfig.js"></script>
 <script type="module" src="poolSupabase.js"></script>
 <style>
   body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; color: #111; }
   h1 { color: #0073e6; }
-  button { margin: 5px; padding: 10px 15px; cursor: pointer; }
+  form { margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+  input { padding: 5px 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+  button { padding: 10px 15px; margin-top: 10px; cursor: pointer; background: #0073e6; color: #fff; border: none; border-radius: 5px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+  th { background: #0073e6; color: #fff; }
 </style>
 </head>
 <body>
-<h1>Plano B - Pool Real</h1>
+<h1>Plano B - Pool Interativo</h1>
 
-<button onclick="adicionarUsuario(prompt('Nome'), prompt('Email'), parseFloat(prompt('Depósito inicial')))">
-  Adicionar Usuário
-</button>
+<h2>Adicionar Usuário</h2>
+<form id="formUsuario">
+  <input type="text" id="nome" placeholder="Nome" required />
+  <input type="email" id="email" placeholder="Email" required />
+  <input type="number" id="deposito" placeholder="Depósito Inicial" required />
+  <button type="submit">Adicionar Usuário</button>
+</form>
 
-<button onclick="registrarTrade(prompt('Evento'), parseFloat(prompt('Valor trade')), parseFloat(prompt('Resultado %')))">
-  Registrar Trade
-</button>
+<h2>Registrar Trade</h2>
+<form id="formTrade">
+  <input type="text" id="evento" placeholder="Evento" required />
+  <input type="number" id="valor" placeholder="Valor Trade" required />
+  <input type="number" id="resultado" placeholder="Resultado % (positivo ou negativo)" required />
+  <button type="submit">Registrar Trade</button>
+</form>
 
-<button onclick="relatorioUsuarios()">
-  Relatório Usuários
-</button>
+<h2>Relatórios</h2>
+<button onclick="relatorioUsuarios()">Relatório Usuários</button>
+<button onclick="relatorioTrades()">Relatório Trades</button>
 
-<button onclick="relatorioTrades()">
-  Relatório Trades
-</button>
+<table id="tabelaRelatorio" style="display:none;">
+  <thead>
+    <tr><th>ID</th><th>Nome / Evento</th><th>Email / Valor</th><th>Saldo / Resultado</th><th>Data / Timestamp</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-<p>⚠️ Todos os dados são persistidos no Supabase e podem ser usados com usuários reais.</p>
+<script type="module">
+import { adicionarUsuario, registrarTrade, relatorioUsuarios, relatorioTrades } from './poolSupabase.js';
+
+document.getElementById('formUsuario').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const nome = document.getElementById('nome').value;
+  const email = document.getElementById('email').value;
+  const deposito = parseFloat(document.getElementById('deposito').value);
+  await adicionarUsuario(nome, email, deposito);
+  e.target.reset();
+});
+
+document.getElementById('formTrade').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const evento = document.getElementById('evento').value;
+  const valor = parseFloat(document.getElementById('valor').value);
+  const resultado = parseFloat(document.getElementById('resultado').value);
+  await registrarTrade(evento, valor, resultado);
+  e.target.reset();
+});
+
+// Função para exibir relatório em tabela
+window.relatorioUsuarios = async ()=>{
+  const { data, error } = await supabase.from('usuarios').select('*');
+  if(error){ alert('Erro ao buscar usuários'); console.error(error); return; }
+  exibirTabela(data, true);
+};
+
+window.relatorioTrades = async ()=>{
+  const { data, error } = await supabase.from('pool_trades').select('*');
+  if(error){ alert('Erro ao buscar trades'); console.error(error); return; }
+  exibirTabela(data, false);
+};
+
+function exibirTabela(dados, isUsuario){
+  const tabela = document.getElementById('tabelaRelatorio');
+  tabela.style.display = 'table';
+  const tbody = tabela.querySelector('tbody');
+  tbody.innerHTML = '';
+  dados.forEach(d=>{
+    const tr = document.createElement('tr');
+    if(isUsuario){
+      tr.innerHTML = `<td>${d.id}</td><td>${d.nome}</td><td>${d.email}</td><td>${d.saldo.toFixed(2)}</td><td>${new Date(d.criado_em).toLocaleString()}</td>`;
+    }else{
+      tr.innerHTML = `<td>${d.id}</td><td>${d.evento}</td><td>${d.valor}</td><td>${d.resultado}</td><td>${new Date(d.timestamp).toLocaleString()}</td>`;
+    }
+    tbody.appendChild(tr);
+  });
+}
+</script>
+
 </body>
-</html>
+    </html>
