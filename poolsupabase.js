@@ -1,5 +1,6 @@
 // poolSupabase.js
 import { supabase } from './supabaseConfig.js';
+import { apostarEvento, atualizarSaldo } from './poolPinnacle.js';
 
 // Adicionar usuário ao pool
 export async function adicionarUsuario(nome, email, depositoInicial){
@@ -28,27 +29,13 @@ export async function registrarTrade(evento, valorTrade, resultadoPercentual){
     return;
   }
 
-  const { data: usuarios, error } = await supabase.from('usuarios').select('*');
-  if(error){ console.error(error); return; }
+  // 1️⃣ Preparar aposta proporcional (sem enviar ainda)
+  await apostarEvento(evento, valorTrade, 'back'); // tipo 'back', pode ser parametrizado
 
-  const saldoTotal = usuarios.reduce((acc, u) => acc + u.saldo, 0);
+  // 2️⃣ Atualizar saldo proporcional de cada usuário
+  await atualizarSaldo(resultadoPercentual, valorTrade);
 
-  let updates = usuarios.map(u => {
-    let valorReservado = (u.saldo / saldoTotal) * valorTrade;
-    let novoSaldo = u.saldo;
-
-    if(resultadoPercentual > 0){
-      novoSaldo += valorReservado * resultadoPercentual * 0.7; // lucro usuário
-    } else {
-      novoSaldo -= valorReservado * Math.abs(resultadoPercentual); // perda do usuário
-    }
-    return { id: u.id, saldo: novoSaldo };
-  });
-
-  for(let u of updates){
-    await supabase.from('usuarios').update({ saldo: u.saldo }).eq('id', u.id);
-  }
-
+  // 3️⃣ Registrar no histórico
   const { data: tradeData, error: tradeError } = await supabase
     .from('pool_trades')
     .insert([{ evento, valor: valorTrade, resultado: resultadoPercentual, timestamp: new Date() }]);
