@@ -1,7 +1,10 @@
 // supabaseConfig.js
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const SUPABASE_URL = 'SUA_URL_SUPABASE'; // substitua pela sua URL do Supabase
-const SUPABASE_KEY = 'SUA_API_KEY';       // substitua pela sua API Key
+// URL do projeto
+const SUPABASE_URL = 'https://sfaqtbhhbbvkfmgsryya.supabase.co';
+
+// Chave segura para front-end (publishable key / anon public key)
+const SUPABASE_KEY = 'sb_publishable_FHz_NEx7CSY_giqOqjl03A_q2-CtA5w';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
