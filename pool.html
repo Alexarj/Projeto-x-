@@ -12,7 +12,8 @@
   .markets { width:50%; padding:10px; overflow-y:auto; height:80vh; }
   .pool { width:20%; padding:10px; border-left:1px solid #333; }
   table { width:100%; border-collapse:collapse; }
-  th, td { padding:6px; text-align:center; border-bottom:1px solid #333; }
+  th, td { padding:6px; text-align:center; border-bottom:1px solid #333; cursor:pointer; }
+  th { background:#1f2937; }
   button { padding:5px 10px; margin:2px; background:#1f2937; color:#e5e7eb; border:none; cursor:pointer; }
   button:hover { background:#374151; }
   .inline-input { width:60px; text-align:center; }
@@ -53,43 +54,41 @@
     <li>Maria: R$150</li>
   </ul>
   <button id="closeBet">Encerrar Aposta</button>
+  <hr>
+  <button id="btnTransferir">Transferir para Pool</button>
+  <button id="btnSaque">Retirar do Pool</button>
 </div>
 
 </div>
 
 <script type="module">
-import { reservarPool, encerrarAposta, getPool } from './poolSupabase.js';
-import { enviarApostaPinnacle, atualizarOdds } from './poolPinnacle.js';
+import { transferirParaPool, saqueDoPool, setPoolOperando, atualizarPool } from './userPool.js';
+import { reservarPool, encerrarAposta } from './poolSupabase.js';
+import { enviarApostaPinnacle, obterOddsAoVivo } from './poolPinnacle.js';
 
-// Dados simulados de mercados
-const marketsData = {
-  "Flamengo x Palmeiras":[
-    {market:"Vitória Flamengo", back:1.85, lay:1.95},
-    {market:"Vitória Palmeiras", back:2.10, lay:2.00},
-    {market:"Empate", back:3.50, lay:3.60},
-    {market:"Total de gols >2.5", back:1.90, lay:2.00},
-    {market:"Resultado correto", back:5.00, lay:4.80}
-  ],
-  "Grêmio x São Paulo":[
-    {market:"Vitória Grêmio", back:2.20, lay:2.30},
-    {market:"Vitória São Paulo", back:1.95, lay:2.05},
-    {market:"Empate", back:3.80, lay:3.90}
-  ]
-};
-
-const matchesTable = document.getElementById("matchesTable");
-const marketsContainer = document.getElementById("marketsContainer");
 let selectedMatch = null;
-
-// Variáveis para atualização ao vivo
 let valorAposta = 0;
-let lucroAtual = 0; 
+let lucroAtual = 0;
 let atualizando = false;
 
-// Função para mostrar mercados
-function showMarkets(match){
+// Inicializa pool
+atualizarPool();
+
+// Lista de partidas
+const matchesTable = document.getElementById("matchesTable");
+const marketsContainer = document.getElementById("marketsContainer");
+
+matchesTable.querySelectorAll("tr[data-match]").forEach(row=>{
+  row.addEventListener("click", ()=>{
+    selectedMatch = row.getAttribute("data-match");
+    atualizarOddsAoVivo();
+  });
+});
+
+// Mostra mercados
+async function showMarkets(odds){
   marketsContainer.innerHTML = "";
-  marketsData[match].forEach(m=>{
+  odds.forEach(m=>{
     const div = document.createElement("div");
     div.innerHTML = `
       <b>${m.market}</b><br>
@@ -104,75 +103,66 @@ function showMarkets(match){
   });
 }
 
-// Função para apostar
+// Apostar
 window.placeBet = async function(market,type,odd){
   const inputId = type==="back"?`betBack_${market}`:`betLay_${market}`;
   valorAposta = parseFloat(document.getElementById(inputId).value);
   if(isNaN(valorAposta)||valorAposta<=0){ alert("Informe valor válido"); return; }
 
-  // Reserva saldo no pool
   const ok = await reservarPool(valorAposta);
   if(!ok) return;
 
-  // Envia aposta para Pinnacle
+  setPoolOperando(true); // bloqueia saque
   await enviarApostaPinnacle(selectedMatch, market, type, valorAposta, odd);
 
-  // Começa atualização ao vivo
   lucroAtual = 0;
   atualizando = true;
   atualizarValorAoVivo();
 };
 
-// Atualiza valor da aposta ao vivo
+// Valor ao vivo
 async function atualizarValorAoVivo(){
   if(!atualizando) return;
-
-  // Simulação de lucro/perda (substituir por API real Pinnacle)
-  lucroAtual = (Math.random()-0.5) * valorAposta * 0.1;
-  const valorExibido = valorAposta + lucroAtual;
-  document.getElementById("currentBet").innerText = `R$${valorExibido.toFixed(2)}`;
-
-  setTimeout(atualizarValorAoVivo, 2000);
+  lucroAtual = (Math.random()-0.5)*valorAposta*0.1;
+  document.getElementById("currentBet").innerText = `R$${(valorAposta+lucroAtual).toFixed(2)}`;
+  setTimeout(atualizarValorAoVivo,2000);
 }
 
-// Atualiza odds ao vivo
-async function atualizarOddsAoVivo() {
+// Odds ao vivo
+async function atualizarOddsAoVivo(){
   if(!selectedMatch) return;
-
-  // Simulação de variação de odds
-  marketsData[selectedMatch].forEach(m=>{
-    const flutuacao = (Math.random() - 0.5) * 0.05; // +/-5%
-    m.back = (m.back * (1 + flutuacao)).toFixed(2);
-    m.lay = (m.lay * (1 + flutuacao)).toFixed(2);
-  });
-
-  showMarkets(selectedMatch);
-
-  setTimeout(atualizarOddsAoVivo, 2000); // atualiza a cada 2s
+  const odds = await obterOddsAoVivo(selectedMatch);
+  showMarkets(odds);
+  setTimeout(atualizarOddsAoVivo,2000);
 }
 
-// Seleciona partida e inicia odds ao vivo
-matchesTable.querySelectorAll("tr[data-match]").forEach(row=>{
-  row.addEventListener("click",()=>{
-    selectedMatch = row.getAttribute("data-match");
-    showMarkets(selectedMatch);
-    atualizarOddsAoVivo();
-  });
-});
-
-// Encerrar aposta com valor ao vivo
+// Encerrar aposta
 document.getElementById("closeBet").addEventListener("click", async ()=>{
   atualizando = false;
-
+  setPoolOperando(false); // libera saque
   const valorFinal = valorAposta + lucroAtual;
   const lucro = valorFinal > valorAposta;
-
-  await encerrarAposta(valorFinal, lucro);
-
+  await encerrarAposta(valorFinal,lucro);
   document.getElementById("currentBet").innerText = "R$0";
   alert(`Aposta encerrada com valor final: R$${valorFinal.toFixed(2)} (${lucro?"Lucro":"Perda"})`);
+});
+
+// Botão transferir para pool
+document.getElementById("btnTransferir").addEventListener("click", ()=>{
+  const usuario = prompt("Informe seu nome:");
+  const valor = parseFloat(prompt("Informe o valor a transferir (mínimo R$20):"));
+  if(isNaN(valor)) return;
+  transferirParaPool(usuario, valor);
+});
+
+// Botão saque
+document.getElementById("btnSaque").addEventListener("click", ()=>{
+  const usuario = prompt("Informe seu nome:");
+  const valor = parseFloat(prompt("Informe o valor a sacar (mínimo R$20):"));
+  if(isNaN(valor)) return;
+  saqueDoPool(usuario, valor);
 });
 </script>
 
 </body>
-</html>
+  </html>
