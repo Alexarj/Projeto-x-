@@ -3,16 +3,31 @@ import { supabase } from './supabaseConfig.js';
 
 // Adicionar usuário ao pool
 export async function adicionarUsuario(nome, email, depositoInicial){
+  if(!nome || !email || isNaN(depositoInicial)){
+    alert('Preencha todos os campos corretamente!');
+    return;
+  }
+
   const { data, error } = await supabase
     .from('usuarios')
     .insert([{ nome, email, saldo: depositoInicial, criado_em: new Date() }]);
   
-  if(error) console.error(error);
-  else console.log('Usuário adicionado:', data);
+  if(error){
+    console.error(error);
+    alert('Erro ao adicionar usuário: ' + error.message);
+  } else {
+    console.log('Usuário adicionado:', data);
+    alert('Usuário adicionado com sucesso!');
+  }
 }
 
 // Registrar trade no pool
 export async function registrarTrade(evento, valorTrade, resultadoPercentual){
+  if(!evento || isNaN(valorTrade) || isNaN(resultadoPercentual)){
+    alert('Preencha todos os campos corretamente!');
+    return;
+  }
+
   const { data: usuarios, error } = await supabase.from('usuarios').select('*');
   if(error){ console.error(error); return; }
 
@@ -25,7 +40,7 @@ export async function registrarTrade(evento, valorTrade, resultadoPercentual){
     if(resultadoPercentual > 0){
       novoSaldo += valorReservado * resultadoPercentual * 0.7; // lucro usuário
     } else {
-      novoSaldo -= valorReservado * Math.abs(resultadoPercentual); // perda usuário
+      novoSaldo -= valorReservado * Math.abs(resultadoPercentual); // perda do usuário
     }
     return { id: u.id, saldo: novoSaldo };
   });
@@ -53,4 +68,4 @@ export async function relatorioTrades(){
   const { data, error } = await supabase.from('pool_trades').select('*');
   if(error){ console.error(error); return; }
   console.table(data);
-    }
+}
