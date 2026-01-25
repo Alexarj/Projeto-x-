@@ -2,100 +2,127 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Plano B - Pool Interativo</title>
-<script type="module" src="supabaseConfig.js"></script>
-<script type="module" src="poolSupabase.js"></script>
+<title>Trader ao Vivo - Projeto X</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; color: #111; }
-  h1 { color: #0073e6; }
-  form { margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
-  input { padding: 5px 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-  button { padding: 10px 15px; margin-top: 10px; cursor: pointer; background: #0073e6; color: #fff; border: none; border-radius: 5px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
-  th { background: #0073e6; color: #fff; }
+  body { font-family: Arial, sans-serif; background:#0f172a; color:#e5e7eb; margin:0; }
+  header { background:#020617; padding:20px; text-align:center; font-size:24px; }
+  .container { display:flex; }
+  .matches { width:30%; border-right:1px solid #333; padding:10px; overflow-y:auto; height:80vh; }
+  .markets { width:50%; padding:10px; overflow-y:auto; height:80vh; }
+  .pool { width:20%; padding:10px; border-left:1px solid #333; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { padding:6px; text-align:center; border-bottom:1px solid #333; }
+  button { padding:5px 10px; margin:2px; background:#1f2937; color:#e5e7eb; border:none; cursor:pointer; }
+  button:hover { background:#374151; }
+  .inline-input { width:60px; text-align:center; }
 </style>
 </head>
 <body>
-<h1>Plano B - Pool Interativo</h1>
 
-<h2>Adicionar Usuário</h2>
-<form id="formUsuario">
-  <input type="text" id="nome" placeholder="Nome" required />
-  <input type="email" id="email" placeholder="Email" required />
-  <input type="number" id="deposito" placeholder="Depósito Inicial" required />
-  <button type="submit">Adicionar Usuário</button>
-</form>
+<header>Projeto X - Trader ao Vivo</header>
 
-<h2>Registrar Trade</h2>
-<form id="formTrade">
-  <input type="text" id="evento" placeholder="Evento" required />
-  <input type="number" id="valor" placeholder="Valor Trade" required />
-  <input type="number" id="resultado" placeholder="Resultado % (positivo ou negativo)" required />
-  <button type="submit">Registrar Trade</button>
-</form>
+<div class="container">
 
-<h2>Relatórios</h2>
-<button onclick="relatorioUsuarios()">Relatório Usuários</button>
-<button onclick="relatorioTrades()">Relatório Trades</button>
+<!-- Lista de partidas -->
+<div class="matches">
+  <h3>Partidas</h3>
+  <table id="matchesTable">
+    <tr><th>Evento</th><th>Status</th></tr>
+    <tr data-match="Flamengo x Palmeiras" data-live="true"><td>Flamengo x Palmeiras</td><td>Ao vivo</td></tr>
+    <tr data-match="Grêmio x São Paulo" data-live="false"><td>Grêmio x São Paulo</td><td>Pré-jogo</td></tr>
+  </table>
+</div>
 
-<table id="tabelaRelatorio" style="display:none;">
-  <thead>
-    <tr><th>ID</th><th>Nome / Evento</th><th>Email / Valor</th><th>Saldo / Resultado</th><th>Data / Timestamp</th></tr>
-  </thead>
-  <tbody></tbody>
-</table>
+<!-- Mercados e odds -->
+<div class="markets">
+  <h3>Mercados</h3>
+  <div id="marketsContainer">
+    <p>Selecione uma partida para ver os mercados</p>
+  </div>
+</div>
 
-<script type="module">
-import { adicionarUsuario, registrarTrade, relatorioUsuarios, relatorioTrades } from './poolSupabase.js';
+<!-- Pool e controle -->
+<div class="pool">
+  <h3>Pool do Trader</h3>
+  <p>Saldo disponível: <span id="poolBalance">R$1000</span></p>
+  <p>Valor da aposta atual: <span id="currentBet">R$0</span></p>
+  <p>Participação proporcional:</p>
+  <ul id="poolUsers">
+    <li>João: R$100</li>
+    <li>Maria: R$150</li>
+  </ul>
+  <button id="closeBet">Encerrar Aposta</button>
+</div>
 
-document.getElementById('formUsuario').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const nome = document.getElementById('nome').value;
-  const email = document.getElementById('email').value;
-  const deposito = parseFloat(document.getElementById('deposito').value);
-  await adicionarUsuario(nome, email, deposito);
-  e.target.reset();
-});
+</div>
 
-document.getElementById('formTrade').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const evento = document.getElementById('evento').value;
-  const valor = parseFloat(document.getElementById('valor').value);
-  const resultado = parseFloat(document.getElementById('resultado').value);
-  await registrarTrade(evento, valor, resultado);
-  e.target.reset();
-});
-
-// Função para exibir relatório em tabela
-window.relatorioUsuarios = async ()=>{
-  const { data, error } = await supabase.from('usuarios').select('*');
-  if(error){ alert('Erro ao buscar usuários'); console.error(error); return; }
-  exibirTabela(data, true);
+<script>
+// Dados simulados de mercados
+const marketsData = {
+  "Flamengo x Palmeiras":[
+    {market:"Vitória Flamengo", back:1.85, lay:1.95},
+    {market:"Vitória Palmeiras", back:2.10, lay:2.00},
+    {market:"Empate", back:3.50, lay:3.60},
+    {market:"Total de gols >2.5", back:1.90, lay:2.00},
+    {market:"Resultado correto", back:5.00, lay:4.80}
+  ],
+  "Grêmio x São Paulo":[
+    {market:"Vitória Grêmio", back:2.20, lay:2.30},
+    {market:"Vitória São Paulo", back:1.95, lay:2.05},
+    {market:"Empate", back:3.80, lay:3.90}
+  ]
 };
 
-window.relatorioTrades = async ()=>{
-  const { data, error } = await supabase.from('pool_trades').select('*');
-  if(error){ alert('Erro ao buscar trades'); console.error(error); return; }
-  exibirTabela(data, false);
-};
+const matchesTable = document.getElementById("matchesTable");
+const marketsContainer = document.getElementById("marketsContainer");
+let selectedMatch = null;
 
-function exibirTabela(dados, isUsuario){
-  const tabela = document.getElementById('tabelaRelatorio');
-  tabela.style.display = 'table';
-  const tbody = tabela.querySelector('tbody');
-  tbody.innerHTML = '';
-  dados.forEach(d=>{
-    const tr = document.createElement('tr');
-    if(isUsuario){
-      tr.innerHTML = `<td>${d.id}</td><td>${d.nome}</td><td>${d.email}</td><td>${d.saldo.toFixed(2)}</td><td>${new Date(d.criado_em).toLocaleString()}</td>`;
-    }else{
-      tr.innerHTML = `<td>${d.id}</td><td>${d.evento}</td><td>${d.valor}</td><td>${d.resultado}</td><td>${new Date(d.timestamp).toLocaleString()}</td>`;
-    }
-    tbody.appendChild(tr);
+// Seleciona partida
+matchesTable.querySelectorAll("tr[data-match]").forEach(row=>{
+  row.addEventListener("click",()=>{
+    selectedMatch = row.getAttribute("data-match");
+    showMarkets(selectedMatch);
+  });
+});
+
+// Mostra mercados
+function showMarkets(match){
+  marketsContainer.innerHTML = "";
+  marketsData[match].forEach(m=>{
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <b>${m.market}</b><br>
+      Back: ${m.back} <input type="number" class="inline-input" id="betBack" placeholder="Valor">
+      <button onclick="placeBet('${m.market}','back',${m.back})">Confirmar</button>
+      <br>
+      Lay: ${m.lay} <input type="number" class="inline-input" id="betLay" placeholder="Valor">
+      <button onclick="placeBet('${m.market}','lay',${m.lay})">Confirmar</button>
+      <hr>
+    `;
+    marketsContainer.appendChild(div);
   });
 }
+
+// Função para apostar
+function placeBet(market,type,odd){
+  const inputId = type==="back"?"betBack":"betLay";
+  const value = parseFloat(document.getElementById(inputId).value);
+  if(isNaN(value)||value<=0){ alert("Informe valor válido"); return; }
+  alert(`Aposta enviada: ${market} ${type.toUpperCase()} R$${value} @${odd}`);
+  document.getElementById("currentBet").innerText = `R$${value}`;
+  // Aqui integra poolSupabase.js e API Pinnacle
+}
+
+// Encerrar aposta
+document.getElementById("closeBet").addEventListener("click",()=>{
+  const result = prompt("Resultado da aposta? (lucro/perda)"); // aqui simula o retorno
+  alert(`Aposta encerrada com: ${result}`);
+  document.getElementById("currentBet").innerText = "R$0";
+  // Aqui atualiza poolSupabase.js com lucro 70/30 ou perda apenas usuários
+});
+
 </script>
 
 </body>
-    </html>
+</html>
