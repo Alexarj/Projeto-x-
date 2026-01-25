@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin – Criar Alertas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>Admin – Criar Alertas</h1>
+</header>
+
+<section class="card">
+  <h2>Login do Trader</h2>
+  <form id="loginForm">
+    <label for="adminEmail">Email:</label>
+    <input type="email" id="adminEmail" required>
+
+    <label for="adminSenha">Senha:</label>
+    <input type="password" id="adminSenha" required>
+
+    <button type="submit" class="btn">Entrar</button>
+  </form>
+
+  <div id="alertaSection" style="display:none;">
+    <h2>Criar Alerta</h2>
+    <label for="jogo">Jogo:</label>
+    <input type="text" id="jogo" placeholder="BARCELONA X LEVANTE">
+
+    <label for="tipo">Oportunidade:</label>
+    <input type="text" id="tipo" placeholder="LAY AO LEVANTE">
+
+    <label for="odd">Odd sugerida:</label>
+    <input type="number" id="odd" step="0.01" placeholder="1.85">
+
+    <label for="inicio">Horário de início:</label>
+    <input type="datetime-local" id="inicio">
+
+    <label for="aviso">Aviso de risco:</label>
+    <input type="text" id="aviso" value="Apostas esportivas envolvem riscos">
+
+    <button id="criarAlerta" class="btn">Salvar Alerta</button>
+    <p id="statusAlerta"></p>
+  </div>
+</section>
+
+<script>
+const loginForm = document.getElementById('loginForm');
+const alertaSection = document.getElementById('alertaSection');
+const statusAlerta = document.getElementById('statusAlerta');
+
+// Login simples
+const adminDados = { email: 'trader@seuemail.com', senha: '123456' };
+
+loginForm.addEventListener('submit', function(e){
+  e.preventDefault();
+  const email = document.getElementById('adminEmail').value;
+  const senha = document.getElementById('adminSenha').value;
+
+  if(email === adminDados.email && senha === adminDados.senha){
+    loginForm.style.display = 'none';
+    alertaSection.style.display = 'block';
+  } else {
+    alert('Email ou senha incorretos');
+  }
+});
+
+// Criar alerta
+document.getElementById('criarAlerta').addEventListener('click', function(){
+  const jogo = document.getElementById('jogo').value.trim();
+  const tipo = document.getElementById('tipo').value.trim();
+  const odd = parseFloat(document.getElementById('odd').value);
+  const inicio = document.getElementById('inicio').value;
+  const aviso = document.getElementById('aviso').value.trim();
+
+  if(!jogo || !tipo || !odd || !inicio){
+    alert('Preencha todos os campos obrigatórios.');
+    return;
+  }
+
+  let alertas = JSON.parse(localStorage.getItem('alertas')) || [];
+  alertas.push({ jogo, tipo, odd, inicio, aviso });
+  localStorage.setItem('alertas', JSON.stringify(alertas));
+
+  statusAlerta.textContent = `Alerta salvo para ${jogo} às ${new Date(inicio).toLocaleString()}`;
+  
+  // Limpar campos
+  document.getElementById('jogo').value = '';
+  document.getElementById('tipo').value = '';
+  document.getElementById('odd').value = '';
+  document.getElementById('inicio').value = '';
+});
+</script>
+
+</body>
+  </html>
