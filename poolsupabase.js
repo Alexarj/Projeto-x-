@@ -1,6 +1,6 @@
 // poolSupabase.js
 import { supabase } from './supabaseConfig.js';
-import { apostarEvento, atualizarSaldo } from './poolPinnacle.js';
+import { apostarEvento, atualizarSaldo, mostrarApostas } from './poolPinnacle.js';
 
 // Adicionar usuário ao pool
 export async function adicionarUsuario(nome, email, depositoInicial){
@@ -29,19 +29,20 @@ export async function registrarTrade(evento, valorTrade, resultadoPercentual){
     return;
   }
 
-  // 1️⃣ Preparar aposta proporcional (sem enviar ainda)
-  await apostarEvento(evento, valorTrade, 'back'); // tipo 'back', pode ser parametrizado
+  // 1️⃣ Preparar apostas proporcionais
+  const apostas = await apostarEvento(evento, valorTrade, 'back');
+  mostrarApostas(apostas); // debug / conferência
 
   // 2️⃣ Atualizar saldo proporcional de cada usuário
   await atualizarSaldo(resultadoPercentual, valorTrade);
 
-  // 3️⃣ Registrar no histórico
+  // 3️⃣ Registrar trade no histórico do Supabase
   const { data: tradeData, error: tradeError } = await supabase
     .from('pool_trades')
     .insert([{ evento, valor: valorTrade, resultado: resultadoPercentual, timestamp: new Date() }]);
 
-  if(tradeError) console.error(tradeError);
-  else console.log('Trade registrado:', tradeData);
+  if(tradeError) console.error('Erro ao registrar trade:', tradeError);
+  else console.log('Trade registrado com sucesso:', tradeData);
 }
 
 // Relatórios
@@ -55,4 +56,4 @@ export async function relatorioTrades(){
   const { data, error } = await supabase.from('pool_trades').select('*');
   if(error){ console.error(error); return; }
   console.table(data);
-}
+    }
