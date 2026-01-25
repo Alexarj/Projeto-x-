@@ -5,6 +5,11 @@
 <title>Plano B - Pool Real</title>
 <script type="module" src="supabaseConfig.js"></script>
 <script type="module" src="poolSupabase.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; color: #111; }
+  h1 { color: #0073e6; }
+  button { margin: 5px; padding: 10px 15px; cursor: pointer; }
+</style>
 </head>
 <body>
 <h1>Plano B - Pool Real</h1>
@@ -13,4 +18,18 @@
   Adicionar Usuário
 </button>
 
-<button onclick="registrarTrade(prompt('Evento
+<button onclick="registrarTrade(prompt('Evento'), parseFloat(prompt('Valor trade')), parseFloat(prompt('Resultado %')))">
+  Registrar Trade
+</button>
+
+<button onclick="relatorioUsuarios()">
+  Relatório Usuários
+</button>
+
+<button onclick="relatorioTrades()">
+  Relatório Trades
+</button>
+
+<p>⚠️ Todos os dados são persistidos no Supabase e podem ser usados com usuários reais.</p>
+</body>
+</html>
